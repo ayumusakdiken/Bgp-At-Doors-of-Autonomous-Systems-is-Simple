@@ -1,0 +1,5 @@
+# First, we add underlay IP address for this host to `eth0` interface
+ip addr add 192.168.2.1/24 dev eth0
+
+# After the setup of VXLAN we should add overlay IP address to `eth0` interface it should be share same subnet with the other host
+ip addr add 30.1.1.2/24 dev eth0

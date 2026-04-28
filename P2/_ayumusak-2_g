@@ -1,0 +1,28 @@
+# First, we add underlay IP address for this router to `eth1` interface
+ip addr add 192.168.2.254/24 dev eth1
+
+# Also we should add other underlay IP address for the transmission with other router that should be share same subnet with the other router in that reason we can add to `eth0` interface;
+ip addr add 10.0.0.2/30 dev eth0
+
+# Now we can start setup of VXLAN. We could setup VXLAN in two ways; first, in static mode, second in multicast mode. At the below it will shows these setups;
+
+# For static mode, we can say to `ip link add`; you create a new interface as name as `vxlan10` that type is `vxlan` also its VNI ID has to be `10`, other remote VTEP device IP is `10.0.0.1` and my IP is `10.0.0.2`. you could run on `4789` dstport because its a IANA standart port number also you could run on `eth0` interface 
+ip link add vxlan10 type vxlan id 10 remote 10.0.0.1 local 10.0.0.2 dstport 4789 dev eth0
+
+# For multicast mode, we use `group` argument. It's a only difference from static mode. Because if each VTEP device listen the `239.1.1.1` group IP address, they will discover other remote VTEP devices automatically if they are listen that address too. Also 224.0.0.0 - 239.255.255.255 IP addresses are reserved group addresses for a special purposes. For example `239.x.x.x` prefix is a special for VXLAN.
+ip link add vxlan10 type vxlan id 10 group 239.1.1.1 dstport 4789 dev eth0
+
+# We have to activate the `vxlan10` interface because it could be `DOWN` state
+ip link set vxlan10 up
+
+# After VXLAN setup we have to create as type of `bridge` interface name as `br0` because of we want our host's traffic flow through there for overlay;
+ip link add br0 type bridge
+
+# we up it the `br0` interface with this;
+ip link set br0 up
+
+# for the routing of traffic from hosts, we have to plug each necessary interface point to the our bridge interface. bridge is known as virtual switch. at the below the traffic it will flows on the overlay by `vxlan10` but for before we have to plug to `br0`;
+ip link set vxlan10 master br0
+
+# as a same way the other interface point `eth1` has to plug `br0` because hosts traffic comes by from `eth1` interface;
+ip link set eth1 master br0

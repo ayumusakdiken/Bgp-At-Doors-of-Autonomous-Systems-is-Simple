@@ -597,3 +597,840 @@ ve ana makineye restart at.
 #                                                             #
 ###############################################################
 
+[ Router ve Swtich'in asıl farki ]
+
+OSI modeli (ag iletisimini katmanlara bolen model) bazinda router layer3 katmaninda calisir ancak switch layer2 katmaninda calisir.
+
+Layer 2 → MAC adresi → Switch'in dünyası
+Layer 3 → IP adresi  → Router'ın dünyası
+
+Switch subnet'leri anlamıyor. Switch sadece MAC adresi ile çalışıyor — "bu MAC adresi bu porta bağlı" diyor ve paketi oraya gönderiyor. IP adresine, subnet'e bakmıyor.
+kisaca switch'e bagli cihazlari mantiksal olarak segmentlere bolsek de (subnet'lene) switch tamamen farkli bir cerceve icinde calistigindan (MAC adresine gore) bu yapilandirmadan bi haber sekilde sadece ona gelen paketlerin kime iletilecegini kendi aginda mevcut mu diye bakarak paketleri ona gonderecek eger kendi agindaysa (yani bu cihazlar bu switch'e bagliysa).
+
+Switch agin merkezi/koku gibi dusunulebilir. cihazlar dogrudan birbirlerine baglanip da bir ag olusturulabilirdi. ancak bazi aglar merkezi bir araci (switch) ile de olusturulabilir. switch cihazlarin MAC adreslerine bakip paket iletimi yaptigindan IP protokolu ile calismaz. sadece uzerine bagli cihazlar arasinda iletisimi saglar. teorik açıdan bakıldığında sanki switch'e bağlı tüm cihazlar birbirlerine "ping" atabilir iması oluşuyor olabilir (yani 192.168.1.1 ip'li cihaz 10.0.0.1 cihazına paket gönderebilir iması). ancak bu tamamen yanlis bir ima ve zan olacaktir. çünkü Switch IP ile değil, MAC adresi ile çalışır bu doğru bir ifadedir ama hostlar (uç cihazlar) IP katmanında (layer3) karar verir. bu yüzden cihaz (host) pratik de paket "10.0.0.1 benim subnet'im de değil - ya gateway'e göndermeliyim - ya da gönderemem (gateway yoksa)" daha yola bile çıkamaz aynı subnet'de olmadığından. Burada ARP davranışını unutmamak gerekli. ARP davranışı:
+
+- Aynı subnet → ARP atılır → MAC öğrenilir → switch iletir
+- Farklı subnet → ARP atılmaz bile, gateway aranır -> o da yoksa paket host'dan dışarı dahi çıkamaz.
+
+bu yüzden farklı subnet’teki iki cihaz doğrudan konuşamaz.
+
+“Switch iletir” söylemi neden kafa karıştırıyor?
+Şu durum için doğru:
+
+Switch, kendisine gelen frame’i MAC’e göre iletir ama frame’in oluşması için önce IP katmanı karar vermeli yani Switch “her şeyi iletir” değil “kendisine gelen şeyi iletir”
+
+neden sadece MAC adreslerine bakip cihazlar arasi iletisimi sagliyor diye bir soru sorulursa bu tamamen bu cihazin bu sekilde calisilmasi istendiginden dolayi bu sekilde tasarlanmis oldugu seklinde cevap verilebilir :d
+
+Switch → Aynı ağdaki cihazları birbirine bağlar. "Sen ve ben aynı ağdayız, direkt konuşabiliriz." (192.168.1.0/24 ağında ki tüm cihazlar switch'i kullanarak birbirleriyle iletişim kurabilir)
+Router → Farklı ağlar arasında köprü kurar. "Sen farklı ağdasın, sana ulaşmak için yönlendirme gerekiyor." (192.168.1.1/24 ile 192.168.2.1/24 farklı ağlarını birbirine bağlar)
+
+```
+(192.168.1.0/24 ağı) [PC1] (192.168.1.1) --- Switch --- Router --- Swich --- (192.168.2.1) [PC2] (192.168.2.0/24 ağı)
+```
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ ağ teriminin geniş ve bağlama göre değişkenlik gösterebilir (formlanabilir) cinste bir kavram oluşu üzerine ]
+
+ağ kavrami çok geniş ve bağlama göre değişkenlik gösterebilir cinsten bir terim olduğundan şunlar belirtilmeli;
+
+Aynı ağ = aynı subnet demek. Yani 192.168.1.0/24 subnet'indeki tüm cihazlar "aynı ağda". Bu cihazlar birbirleriyle direkt konuşabiliyor — router'a gerek yok, switch yeterli.
+Farklı ağ = farklı subnet demek. 192.168.1.0/24 ile 192.168.2.0/24 farklı ağlar. Bu iki ağ arasında iletişim için router gerekiyor — switch tek başına yetmiyor.
+
+192.168.1.1 (Muhasebe PC)  ─┐
+192.168.1.2 (Muhasebe PC)  ─┤── Switch ── (aynı ağ, direkt konuşur)
+192.168.1.3 (Muhasebe PC)  ─┘
+
+192.168.2.1 (IT PC) ─┐
+192.168.2.2 (IT PC) ─┤── Switch ── Router ── (farklı ağ, router gerekli)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ VLAN nedir? ]
+VLAN, VXLAN vb. terimlerin/çözümlerin/yöntemlerin/tekniklerin neye istinaden geliştirildiğini/ortaya çıkarıldığını anlayabilmek için önce bu tip çözümlemelerin ortaya çıkmadan önce ki meydanda olan mevcut halin/sorunların anlaşılması gerekli. böylece bu çözümler öğrenilmek istenen konu kapsamında daha iyi kavranacaktır. Konuyu doğrudan ortaya çıkmış bir çözüm üzerinden anlamaya çabalamak kafa da çok fazla boşluğun kalmasına sebebiyet verebilir 
+
+Örneğin bir ağ mevcut (tüm uç cihazların bir switch'e bağlı olduğu bir topoloji) ve bu ağ segmentlendirilmek/bölümlendirilmek isteniyor. Çünkü aynı ağ içerisinde ki bazı uç cihazların bir diğer başka uç cihazlar ile iletişim kurmasına gerek olunmadığına karar verildi. Veya güvenlik için bölümlendirme yapılmak istendi. Veya tamamen bölümlendirilme yapılmak istendiğinden bu yapılmak isteniyor (tamamen keyfi). ağın bazı cihazları muhasebe bazı cihazları IT bölümünde/segment'inde olacak şekilde dilimlenmesi gerek. ancak switch'in malum niteliği sebebiyle (iletim için tek bir broadcast domain olması) birbirlerinden izole bölümlendirilme yapılamıyor. bunun için layer2 katmanında yani switch gibi cihazların anlayabileceği VLAN adlı bir çözüm devreye sokulabilir oluyor. switch'e "bu portlar Muhasebe VLAN'ı, şu portlar IT VLAN'ı, birbirlerini göremezler" diyebiliyorsun. VLAN switch'e Layer 3 farkındalığı kazandırmadan mantıksal segmentleme yapıyor. VLAN'ın getirdiği çözüm şu; normal de switch'e bağlı cihazlar tek bir broadcast domain üzerinden birbirleriyle haberleşiyor ancak yukarıda ki örnekte de belirtildiği üzere muhasebe ve IT departmanları birbirleriyle hiçbir zaman iletişim kurmayacaksa (veya genellikle) o halde bu broadcast domain'i her iletim esnasında meşgul etmenin bir yararı yok. Bunun yerine birden fazla broadcast domain'i olsun her biri kendi segment'i ile ilgilensin/yayın yapsın. VLAN, Layer 2 seviyesinde ağı mantıksal olarak bölerek ayrı broadcast domain’ler oluşturur. VLAN şu problemleri çözer: 
+
+1. Broadcast trafiğini azaltır:
+Tek ağ → herkes ARP alır
+VLAN → sadece kendi grubun görür
+
+2. Güvenlik sağlar
+Aynı switch üzerinde izolasyon
+Örn:
+Muhasebe VLAN 10
+IT VLAN 20
+
+3. Fiziksel değil mantıksal ayrım
+Aynı kablo, aynı switch
+Ama sanki ayrı network gibi davranır
+
+VLAN, fiziksel olarak aynı switch üzerinde bulunan cihazları, Layer 2 seviyesinde ayrı ağlar (broadcast domain’ler) haline getirir. Bu ağlar genellikle farklı IP subnet’leri ile eşleştirilir ama bu zorunlu değildir.
+
+| VLAN    | Subnet         |
+| ------- | -------------- |
+| VLAN 10 | 192.168.1.0/24 |
+| VLAN 20 | 192.168.1.0/24 |
+
+Yani
+
+Aynı IP bloğu
+Ama farklı VLAN →  iletişim yok
+
+Neden?
+
+Broadcast domain ayrı
+ARP birbirine ulaşamaz
+
+veya
+
+| VLAN    | Subnet         |
+| ------- | -------------- |
+| VLAN 10 | 192.168.1.0/24 |
+| VLAN 20 | 192.168.2.0/24 |
+
+Her VLAN = ayrı subnet
+Aralarında iletişim için router gerekir
+
+iki dizayn/tasarım da çalışır.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ Ağ segmentlenmek isteniyorsa neden Layer3 katmanını kullanan cihazlar (router) tercih edilmeyip VLAN vb. teknikler ile layer2 katmanını kullanan cihazlar (switch) tercih ediliyor? ]
+
+küçük topolojilerde VLAN kullanmadan izolasyon ve segmentleme yapılmak isteniyorsa layer3 katmanında çalışan cihazlar kullanılabilir. Bu bir tasarım mevzusudur. istenirse küçük topolojilerde VLAN'da kullanılabilir ancak sorun büyük topolojilerde ortaya çıkıyor. örneğin bir veri merkezinde binlerce sunucu var. Her sunucu arası iletişim için router kullansaydık ne olurdu? Router her paketi işlemek zorunda. çok yavaş ve pahalı olurdu (geçmişte router'lar pahalıydı). trafik sürekli Layer 3’e çıkıp geri inerdi. bu ciddi bir performans kaybı. Switch’ler ise donanımsal (ASIC) çalışır çok daha hızlı frame iletir. ayrıca ucuz. büyük hacimli trafiği kolayca taşıyor. Bu yüzden aynı ağ içindeki iletişim için switch, farklı ağlar arası için router kullanılıyor. VLAN ile aynı fiziksel switch üzerinde, donanım hızında birden fazla mantıksal ağ oluşturabiliyorsun. amaç segmentasyonu Layer 3’e bırakmadan, Layer 2 seviyesinde daha hızlı ve esnek yapmak. 
+
+VLAN’ın getirdiği kritik avantaj sayesinde switch kendi içinde: VLAN 10 → ayrı ağ, VLAN 20 → ayrı ağ segmentasyonu yapar. Trafik switch içinde kalır (wire speed). Router sadece gerektiğinde devreye girer. Bu da Router’a aşırı yük Gereksiz hop. Ölçeklenebilirlik problemi oluşturmaz.
+
+Ayrıca bu aslında “ya VLAN ya router” mevzusu da değil. bir ağ topolojisinde de zaten switch ve router birlikte de kullanılabilir:
+Router / Layer 3 switch → VLAN’lar arası iletişim : VLAN 10 (Muhasebe) --- Router --- VLAN 20 (IT). Buna "Inter-VLAN Routing" denir.
+
+eğer VLAN yoksa tüm cihazlar aynı broadcast domain'i kullanır bu da paket iletiminin gerçekleştirilmesi için aynı ağda ki tüm cihazları etkilediğinden ağı yorar. Yükü hafifletmek için ayrım yapılması gereklidir bu da ya fiziksel olarak ayırmak anlamına gelir (maliyetli, aşırı teçhizat) ya da tüm trafiği router’a zorlamak anlamına gelir (pahalı ve performans kaybı). ancak VLAN ile farklı VLAN bölümleri oluşturulur bu da her bir VLAN bölümüne özgü brodcast domain anlamına gelir ve böylece bir iletim durumunda iletim, yalnızca kendisini ilgilendiren VLAN alanına sorgu/yayın/iletim yapar.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ VLAN topolojisi ornegi ]
+
+PC-1 ─┐
+PC-2 ─┤── Ethernet Switch
+PC-3 ─┘
+
+cihazlarin ip'leri atanmis ve birbirlerine ping atilabilir sekilde ayarlanmis olan bu topolojiyi kurun.
+
+gns3'te "ethernet switch" cihazina cift tiklanildiginda "Ports" bolumu var. Bu bolum switch cihazinda ki port'lara ozgu yapilandirmalarin yapilabilcegi bir liste ekranidir. PC-1'i port 0'a, PC-2'yi port 1'e ve PC-3'u de port-2'ye bagladigimizi dusunelim. bu ornekte PC-1 ile PC-2'yi VLAN 1'e PC-3'u de VLAN 2'ye ayarlayacagimizi dusunelim. amac PC-3'un diger cihazlara ping atamamasini saglamak yani diger cihazlardan izole etmektir. "Ports" bolumunde PC-3'e bagli olan port'a cift tiklayin. "Settings" bolumunde bunun ile ilgili ayarlar gozukecektir. PC-3 VLAN 1'de oldugundan "VLAN" i ayarlama kismindan bunu 2 olarak degistirin ve "Add" deyin. ardindan bu ayarlari uygulayin. PC-1'den veya PC-2'den PC-3'e ping atmaya calisildiginda bu cihazlar ayni subnet'de olmasina ragmen paketlerin gitmedigi gozlemlenebilir olacaktir.
+
+Ayrica PC-1/2'in terminalinden "arp -n" komutu ile arp tablosunda PC-3'un mac adresinin goruntulenemedigi gozlemlenebilir yani VLAN'in basariyla uygulandigi bu sekilde dogrulanabilir. Veya PC-3 ile switch arasi baglanti wireshark ile incelenecek olursa ve PC-1 veya PC-2'ye ping atilacak olursa bunun iletilemedigi gozlemlenebilir.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////[ VLAN ağ dilimlemesi teknik olarak nerede ve nasıl yapıyor? Ayrım nerede yapılıyor konfigüre ediliyor? ]
+
+VLAN ile ağ izolasyonu ve bölümlendirilmesi ilgili cihaz da yani switch'te yapılır. Switch, port'larına bağlı cihazları VLAN tekniği sayesinde ayırabilir. Bunun için switch'in terminal arayüzüne erişilmesi gereklidir. Bu da klasik olarak (tıpkı bir ev router'ını konfigüre eder gibi) bir PC'yi switch'e kablo ile bağlayıp PC terminalinden switch'in terminal arayüzüne erişilerek yapılır. Erişim yapıldıktan sonra orada bulunan araçlar ile switch üzerinde ki port'lara VLAN ID tag'lemesi (etiketlemesi VLAN 10, VLAN 20 vb. gibi) yapılır. Böylece switch yapılan konfigürasyona göre hangi portunun VLAN ID etiketlemesi yapıldığını bilir. Yani o port'a bağlı olan cihaz VLAN 10’dadır değil, bu switch portu VLAN 10’dadır. İzolasyonun veya ayrımın bilgisi yalnızca switch tarafından bilinir yani sadece kendi kendine bu ayrım bilgisine sahiptir. Ağın paket iletimi ve kontrollerinin hepsi onun üzerinden geçtiğinden yapılan konfigürasyona göre kendince ağ dilimlendirmesi ve izolasyon yönetimini böyle yapabilir.
+
+```
+PC-1 ─ Port 1 ┐
+PC-2 ─ Port 2 ┤ ── Switch
+PC-3 ─ Port 3 ┘
+```
+
+Switch’e diyorsun ki:
+
+Port 1 → VLAN 10
+Port 2 → VLAN 10
+Port 3 → VLAN 20
+
+Sonuc olarak;
+PC1 ve PC2 → aynı VLAN’da
+PC3 → farklı VLAN’da
+
+Switch aslinda sunu yapiyor;
+
+MAC + Port + VLAN tablosu
+
+```
+MAC A → Port 1 → VLAN 10
+MAC B → Port 2 → VLAN 10
+MAC C → Port 3 → VLAN 20
+```
+
+Bu sekilde switch izolasyonu şu kuralı uygulayarak mumkun kilar; “Aynı VLAN içindeki portlar birbirini görür, farklı VLAN’lar görmez”
+
+Port 1 (VLAN 10) → Port 2’ye gönderilebilir 
+Port 1 (VLAN 10) → Port 3’e gönderilemez 
+
+Switch bunu nasıl biliyor?
+
+Switch’in içinde VLAN database + forwarding logic vardır yani;
+
+1. Paket gelir
+2. VLAN tag veya port bilgisi okunur
+3. Lookup yapılır
+4. Sadece o VLAN içinde forward edilir
+
+Switch kendisine bagli olan cihazdan bir paket aldiginda o port'un VLAN ID'si zaten ayarli ve konfigureli oldugundan paketi tag'leyebilir (etiketler). etiketliyebilir olmasiinin sebebi agin yapisina gore degistiginden switch'in davranisini da degistirebilir bu yuzden bununla ilgili iki yontem vardir;
+
+Access port (PC’ye bağlı)
+- VLAN tag YOK
+- Switch içeride ekler/siler
+
+```
+PC ─── (access port) ─── Switch
+```
+
+PC VLAN bilemeyeceginden (IP Layer 3 katmaninda calistigindan) switch'e sadece normal Ethernet frame gönderir;
+
+```
+| MAC | MAC | Data | -> gibi
+```
+
+ Paket Switch’e gelince switch şunu yapar. Paketin hangi porttan geldiğini bilir ve o port “VLAN 10 access port” diye ayarlıdır paketi VLAN 10’a ait kabul eder eğer paket switch’ten çıkacaksa başka switch’e giderken tag eklenebilir. Ozetle VLAN bilgisi çoğu zaman porttan türetilir.
+
+
+Trunk port (switch-switch arası)
+- VLAN tag VAR
+- Switch tag’i korur
+
+```
+Switch A ─── trunk ─── Switch B
+```
+Burada ise VLAN tag TAŞINIR switch tag eklemez veya silmez (çoğu durumda). Yani Switch A tag eklemiş olabilir. Switch B aynen kabul eder.
+
+VLAN pakete ne yapar?
+
+Normal bir Ethernet frame:
+
+```
+| MAC Dest | MAC Src | Type | Data | CRC |
+```
+
+VLAN eklenince araya küçük bir etiket girer:
+
+```
+| MAC Dest | MAC Src | VLAN TAG | Type | Data | CRC |
+```
+
+Bu etiket VLAN ID (örneğin 10, 20).bu yapınin sebebi: IEEE 802.1Q ile ilgili
+
+Ozetle VLAN bir “paket özelliği” değil switch’in pakete eklediği “etiket”
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ VLAN'in teknik sinirlari ve yetersizligi ]
+
+VLAN ile bir subnet'i dilimlendirme belirli sayiya kadar gerceklestirilebilir. Bu teknigin tasarimi geregi yani VLAN ID'si 12 bit ile temsil ediliyor yani  yani 2¹² = 4096, bunun 2'si özel ayrılmış, geriye 4094 kullanılabilir ID kalıyor. Bu teknik bir sınır VLAN standardı (802.1Q) tasarlanırken 4094'ün yeterli olacağı düşünülmüş. Ama internet ve bulut bilişim büyüyünce bu sayı yetersiz kaldı. Yani bir veri merkezinde VLAN teknigi ile ag bolumlendirmesi yapmak mumkun ancak daha fazlasi gerektiginde bu gerceklestirilemiyor. Bunun cozumu icinse VXLAN gelistirilmistir. ayrica bu yeni teknik ile sadece daha fazla sanal ag ID'si arttirmakla kalmamis ayni zaman da farkli cozumleri de beraberinde getirmistir.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ VXLAN nedir ]
+
+VLAN'in sanal ag ID sayisi tasarimi geregi buyuk veri merkezleri gibi yerlerde yetersiz kalmasindan oturu bunun ustune gelistirilen VXLAN yalnizca sanal ag id sayisini fazlalastirmak ile kalmamis ayni zaman dafarkli fiziksel lokasyonlarda bulunan aglari sanki ayni switch'e baglilarmis gibi zannettirme davranisini da sergilemesi saglanmistir. Yani İstanbul'daki sunucu ile Ankara'daki sunucu aralarında internet olmasına rağmen sanki aynı switch'e bağlıymış gibi davranabilir. Buna overlay network deniyor mevcut ağın üzerine sanal bir Layer 2 ağı örtüyorsun (tunelleme).
+
+VLAN'ın sorunu → Tek bir fiziksel lokasyona sıkışık, 
+                  İstanbul'daki VLAN Ankara'ya uzanamıyor
+
+VXLAN'ın çözümü → İnternet üzerinden tünel açarak 
+                   uzak lokasyonları aynı Layer 2 ağda birleştiriyor
+
+
+| Özellik | VLAN          | VXLAN              |
+| ------- | ------------- | ------------------ |
+| Değişim | Tag ekler     | Paket kapsüller    |
+| Katman  | Layer 2       | Layer 3 üstü       |
+| Kapsam  | Local network | Datacenter/Cloud   |
+| Cihaz   | Switch        | VTEP (host/router) |
+| Amaç    | Ayrım         | Taşıma + ölçek     |
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ VLAN ile VXLAN'in konfigürasyonel farklılıkları ]
+
+VLAN'ı ağ da uygulamak için switch üzerinde bir konfigürasyon yapılıyordu. Bunun sebebi bütün ağın paket iletimi switch cihazı üzerinden sağlanmasından ötürü ağ izolasyonu/dilimlemesi/bölümlendirmesi bu cihazın terminal arayüzünden veya varsa grafik arayüzüne erişilip gerekli ayarın ayarlanmasıyla mümkün kılınıyordu (port bazlı bir ayar). Ancak VXLAN farklı switch üzerinde değil, VTEP cihazları üzerinde yapılıyor. VXLAN'da konfigürasyon VTEP uygulanabilir bir cihaz üzerinden sağlanıyor. "VTEP = VXLAN Tunnel Endpoint" tüneli açan ve kapatan cihaz. Yani proje de FRR yüklü olan custom docker router'larımız VTEP cihazı olarak ayarlanabiliyor/formlandırılabiliyor.
+
+VTEP şunu yapıyor:
+
+```
+Host-1'den paket geliyor (end device)
+        ↓
+VTEP-1 paketi alıyor (FRR router)
+        ↓
+Üzerine VXLAN başlığı ekliyor (encapsulation)
+        ↓
+Normal IP paketi gibi internetten gönderiyor
+        ↓
+VTEP-2 paketi alıyor (other FRR router)
+        ↓
+VXLAN başlığını soyuyor (decapsulation)
+        ↓
+Host-2'ye iletiyor (other end device)
+```
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ VXLAN'ın İşleyişi ]
+
+VXLAN'ın yaptığı işlem özetle kendisine gönderilen layer2 paketini layer3 paketi olarak sarmalıyor.
+
+```
+İç paket (Layer 2) → MAC adresleri, ethernet frame
+Dış paket (Layer 3) → IP adresleri, normal internet paketi
+```
+
+Yani VTEP cihazı (FRR router'ımız) şunu yapıyor:
+
+- Host-1'den gelen Layer 2 ethernet frame'ini alıyor
+- Onu bir UDP paketi içine koyuyor
+- Bu UDP paketi normal internet üzerinden gidiyor
+- Karşı taraftaki VTEP UDP paketini açıyor
+- İçindeki Layer 2 frame'i çıkarıp Host-2'ye iletiyor
+
+Host-1 ve Host-2 hiç farkında değil onlar için sanki aynı switch'e bağlılar. Aradaki tüm Layer 3 işlemi onlardan gizli. Yani VXLAN Layer 2'yi taklit ediyor gerçekte Layer 3 üzerinden taşıyor ama uç cihazlara Layer 2 gibi görünüyor.
+
+Daha detaylı olarak düşünecek olursak uç cihazdan gelen paketin layer2 frame'ini layer3 olarak kılıflandırıyor;
+
+```
+Host-1'den gelen ethernet frame (Layer 2)
+        ↓
+VTEP bu frame'i olduğu gibi alıyor
+        ↓
+Üzerine VXLAN başlığı + UDP + IP sarıyor
+        ↓
+Artık normal bir internet paketi gibi görünüyor
+        ↓
+Karşı VTEP bu paketi açıyor
+        ↓
+İçindeki orijinal Layer 2 frame çıkıyor
+        ↓
+Host-2'ye iletiyor
+```
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ Uç cihazlar layer3 katmanında çalışan cihazlar ise nasıl layer2 paketi gönderebiliyorlar? ]
+
+Bir web sitesine istek atıldığında bilgisayar ne gönderiyor? Sadece IP paketi mi? Hayır! Her cihaz bilgisayar, telefon, sunucu ağa bir şey gönderirken her zaman hem Layer 2 hem Layer 3 kullanıyor.
+katmanlar iç içe:
+
+```
+Uygulama verisi
+      ↓
+Layer 3 (IP başlığı ekleniyor)
+      ↓
+Layer 2 (MAC başlığı ekleniyor → ethernet frame)
+      ↓
+Fiziksel kablo
+```
+
+Yani her cihaz veriyi göndermeden önce katman katman sarıyor. Karşı taraf da katman katman açıyor.
+
+"Layer 3 cihazı" veya "Layer 2 cihazı" derken aslında o cihazın hangi katmana kadar baktığını kastediyoruz:
+
+Switch → Layer 2'ye kadar bakıyor, MAC adresine göre yönlendiriyor
+Router → Layer 3'e kadar bakıyor, IP adresine göre yönlendiriyor
+Host → tüm katmanları kullanıyor
+
+Yani host cihazlar da Layer 2 paketi gönderiyor. her zaman. VXLAN VTEP bu Layer 2 paketini yakalayıp kılıf olarak kullanacağı Layer3 paketinin içine koyuyor.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ Temel ve basit bir VXLAN topoloji örneği (statik mod ile) ]
+
+```
+Host-1 ── Router-1 ══VXLAN tüneli══ Router-2 ── Host-2
+```
+
+Router-1 ve Router-2 VTEP görevi yapacak. İlk olarak statik mod ile başlayacağız yani VTEP'lerin birbirinin IP'sini elle gireceğiz.
+
+Topoloji IP planı:
+```
+Host-1 tarafı → 192.168.1.0/24
+Router'lar arası → 10.0.0.0/30
+Host-2 tarafı → 192.168.2.0/24
+```
+
+IP plani uygulandıktan ve ping ile iletişimin sağlandığı doğrulandıktan sonra "Underlay" ağın çalıştığıyla/kurulu olduğuyla ilgili hemfikir olunabilir. VXLAN bağlamında bu fiziksel ağa "Underlay" deniyor.
+
+şimdi ise "Overlay" yani VXLAN ile sanal ağ yapılandırılması için VXLAN tünelini kuracağız. Router-1'in terminalinde şu komutu çalıştır:
+
+```
+ip link add vxlan10 type vxlan id 10 remote 10.0.0.2 local 10.0.0.1 dev eth1
+```
+
+bu komut satırı kısım kısım incelenecek olursa;
+
+- `ip link` --> komutunun genel kullanımı: ağ arayüzlerini yönetmek — oluşturmak, silmek, aktive/deaktive etmek. Daha önce `ip link set eth0 up` ile aktive etmiştik, şimdi ise `ip link add` ile yeni bir sanal arayüz oluşturuyoruz. Kısaca ağ arayüzleri ile ilgili ayarlar yapmayı sağlayan komut aracı.
+
+- `ip link add vxlan10` --> ismi "vxlan10" olacak şekilde yeni bir ağ arayüzü oluşturuyoruz
+
+- `type vxlan id 10` --> bu ağ arayüzünün tipinin "vxlan" bir sanal ağ olacağını ve id numarasının ise "10" olacağı belirtiliyor
+
+- `remote 10.0.0.2` --> bu kısım ise karşı VTEP cihazımızın IP adresini belirttiğimiz kısım (statik mod kısmı burası yani manuel olarak karşı VTEP cihazının IP adresini elle girdiğimiz bölüm)
+
+- `local 10.0.0.1` --> bu şuan da ayarı yapılan VTEP cihazının kendi IP adresi. Yani "ben kimim?" sorusunun cevabı. VXLAN paketi gönderirken kaynak IP olarak bu kullanılacak.
+
+- `dev eth1` --> bu tünelin hangi fiziksel arayüz üzerinden çalışacağı. Router-1'in Router-2'ye bağlı arayüzü eth1. Tünel trafiği buradan akacak.
+
+Özetle:
+
+```
+"vxlan10 adında bir VXLAN arayüzü oluştur,
+VNI ID'si 10 olsun,
+karşı VTEP 10.0.0.2'de,
+ben 10.0.0.1'im,
+eth1 arayüzünü kullan"
+```
+
+komut çalıştırıldığı taktirde bir uyarı mesajı çıktısı verebilir şunun gibi;
+
+```
+vxlan: destination port not specified
+Will use Linux kernel default (non-standard value)
+Use 'dstport 4789' to get the IANA assigned value
+Use 'dstport 0' to get default and quiet this message
+```
+
+bu bir hata değil uyarı mesajıdır `ip a` komutu ile ağ arayüzleri listesine bakılacak olursa "vxlan10" isimli sanal ağ arayüzünün oluşturulduğu görülebilir. 
+
+Bu uyarı ne diyor?
+"VXLAN için hangi port numarasını kullanacağımı belirtmedin. Linux'un kendi varsayılan değerini kullanacağım ama bu IANA'nın belirlediği standart değil."
+IANA = Internet Assigned Numbers Authority port numaralarını standartlaştıran kurum. VXLAN için resmi port 4789.
+
+Yapmadan olur muydu?
+Teknik olarak çalışırdı ama iki VTEP cihazı farklı portlar kullanırsa birbirini anlayamaz. 4789 yazarak "ikimiz de aynı standart portu kullanalım" demiş oluyoruz.
+
+Ayrıca VXLAN bir protokol ve bu protokol UDP üzerinden çalışıyor. UDP paketleri gönderilirken bir port numarası belirtmek zorunda. Router-2 bir UDP paketi aldığında "bu paket kime?" diye soruyor. Pakette port numarası var ve "4789 portuna gel" diyor. Router-2 "4789" portunu dinleyen VXLAN servisine paketi iletiyor. burada servisten kastedilmek istenen tam olarak şu; Linux arka planda "4789 portuna gelen UDP paketlerini ben karşılarım" diyor. Bu VXLAN'ın kernel içinde ki işleyişi.
+Eğer port belirtmezsen:
+
+Router-1 bir port kullanıyor
+Router-2 başka bir port bekliyor
+Paketler eşleşemiyor
+
+Standart port 4789 olduğundan ikisi de aynı portu kullanıyor ve iletişim kuruluyor.
+Kısaca VXLAN bir servis değil ama UDP üzerinden çalıştığı için port numarası şart ve 4789 herkesin anlaştığı standart port.
+
+```
+80  → HTTP (web)
+443 → HTTPS (güvenli web)
+22  → SSH
+4789 → VXLAN (IANA standardı)
+```
+
+gibi düşünülebilir.
+
+komut uygulandiysa şu komut ile ağ arayüzünü silip;
+```
+ip link delete vxlan10
+```
+
+port'un "4789" olarak ayarlandığı şekliyle yeniden ağ arayüzünü oluşturun;
+```
+ip link add vxlan10 type vxlan id 10 remote 10.0.0.2 local 10.0.0.1 dstport 4789 dev eth1
+```
+
+ardindan arayuzu aktive et;
+```
+ip link set vxlan10 up
+```
+
+Sonra Router-2'de de aynı işlemi yap ama dikkat, local ve remote IP'leri yer değiştirecek:
+```
+ip link add vxlan10 type vxlan id 10 remote 10.0.0.1 local 10.0.0.2 dstport 4789 dev eth1
+ip link set vxlan10 up
+```
+
+Şimdi bridge'i kuracağız. Bridge, host'tan (end devices) gelen trafiği VXLAN tüneline aktaran sanal bir switch gibi düşünülebilir. Bridge burada VTEP cihazina bagli olan end device'larin trafigini fizikselden degilde VXLAN trafiginden yani tunelinden gecirmek icin konfigüre edilmesi gereken bir ayardır.
+
+```
+Host-1 (eth0) → Bridge (br0) → vxlan10 arayüzü → tünel
+```
+
+Bridge, host'un ethernet trafiğini VXLAN tüneliyle buluşturuyor. Yani host normal ethernet paketi gönderiyor, bridge onu VXLAN'a yönlendiriyor. Host'un VXLAN'dan haberi yok. host tamamen habersiz, sadece normal ethernet paketi gönderiyor. VTEP (router) her şeyi hallediyor.
+
+Bunun mümkün kılanabilmesi için Router-1'de şu komutların uygulanması gerekli;
+
+```
+ip link add br0 type bridge
+ip link set br0 up
+ip link set vxlan10 master br0
+ip link set eth0 master br0
+```
+
+her bir komutu teker teker ele alacak olursak;
+
+- ilk komut "bridge" tipinde ve "br0" isminde bir kopru ag arayuzu olusturuyor.
+- ikinci komutta bunu aktive ediyoruz.
+- `ip link set vxlan10 master br0` --> "vxlan10 arayüzünü br0 bridge'ine bağla"
+- `ip link set eth0 master br0` --> "eth0" arayüzünü br0 bridge'ine bağla"
+
+master kelimesi şunu demek: "bu arayüzün sahibi br0 olsun." Yani br0 bir switch gibi davranıyor ve hem eth0 hem vxlan10 onun portları oluyor. Veya bir boru veya köprü gibi düşünülürse bunların iki ucunun nereye bağlanması gerektiğinin belirtimi yapılıyor gibi düşünülebilir yani akacak trafiğin her iki ucunun nerelere bağlanması gerektiği gibi.
+
+```
+Host-1 → eth0 → br0 → vxlan10 → tünel → Router-2
+```
+
+"br0" ortada duruyor ve ikisini birleştiriyor. host'tan gelen trafik VXLAN tüneline, tünelden gelen trafik host'a akıyor.
+
+Şimdi Router-2'de de aynı komutları çalıştır;
+
+```
+ip link add br0 type bridge
+ip link set br0 up
+ip link set vxlan10 master br0
+ip link set eth0 master br0
+```
+
+bridge yapılandırması da yapıldıktan sonra son olarak her iki cihazın aynı subnet aralağında olması sağlanarak sanki aynı local ağda veya switch'e bağlılarmış zannını vereceğiz bunun için;
+
+Host-1'in eth0 ag arayuzune IP ata:
+
+```
+ip addr add 30.1.1.1/24 dev eth0
+```
+
+Host-2'ye de:
+```
+ip addr add 30.1.1.2/24 dev eth0
+```
+
+kurgumuz her iki cihazda da eth0 ag arayuzunde ayni subnet'e sahip cihazlarin birbirlerine uzak lokasyonlarda dahi olsalar (yani aralarinda internet dahi olsa) sanki ayni switch'e veya ayni lokasyondalarmis davranisini zannettirmek veya sergiletmek oldugundan her iki cihazin ayni subnet'de oldugu ip adresleri atanmalidir. Bu sekilde arkaplanda ki VXLAN mimarisi calisacaktir. Ve bu ip adresleri atandigi anda artik "overlay" bir network'e sahip olunuyor. Underlay ağımızda zaten 192.168.1.0/24 ve 192.168.2.0/24 subnet'leri var. VXLAN tüneli üzerindeki sanal ağ tamamen ayrı bir ağ farklı bir subnet kullanarak "bu IP'ler VXLAN üzerinden geliyor" diyebiliyoruz. Host-1 (30.1.1.1) ve Host-2 (30.1.1.2) aynı subnette 30.1.1.0/24. Aralarında router yok, sanki aynı switch'e bağlıymış gibi. VXLAN bunu sağlıyor.
+
+host-1'den host-2'ye ping atarak "overlay" agin calisip calisilmadigi test edilebilir;
+
+```
+ping 30.1.1.2
+```
+
+Ozet olarak;
+
+- Host-1 192.168.1.0/24 ağında
+- Host-2 192.168.2.0/24 ağında
+- Ama ikisi de 30.1.1.0/24 overlay ağında birbirini görüyor
+
+Sanki aynı switch'e bağlıymış gibi. Router'lar arası gerçek ağdan tamamen habersizler.
+
+Durumu daha da analiz etmek icin Router-1 ile Router-2 arasında ki kabloya Wireshark aç ve ping at.
+
+Wireshark'da herhangi bir frame'in (sayet paketler hedefe iletiliyor ise) icerigi incelenecek olursa paketin bir kapsul paket oldugu saptanabilir. VNI degeri, VXLAN oldugu, kaynagin aslinda 10.0.0.1'den 10.0.0.2'ye oldugu vb. gibi detaylar Wireshark araciyla teyit edilebilir.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ Unicast, Multicast, Broadcast nedir? ]
+
+Bir sınıfta öğretmen olduğunu düşün:
+
+Unicast → Tek bir öğrenciye konuşmak. "Ahmet, tahtaya gel." Sadece Ahmet duyuyor, mesaj tek hedefe gidiyor.
+Broadcast → Tüm sınıfa bağırmak. "Herkes defterini çıkarsın!" Sınıftaki herkes duyuyor, kaçış yok.
+Multicast → Belirli bir gruba konuşmak. "Matematik kulübü üyeleri yarın toplanıyor." Sadece o kulübe kayıtlı olanlar ilgileniyor, diğerleri görmezden geliyor.
+
+Ağda karşılıkları:
+
+```
+Unicast   → tek bir IP'ye paket gönder (192.168.1.1)
+Broadcast → ağdaki herkese gönder (192.168.1.255)
+Multicast → belirli bir gruba gönder (224.0.0.5 gibi özel adresler)
+```
+
+OSPF'te Hello paketleri hatırlıyor musun? `224.0.0.5` adresine gidiyordu — bu bir multicast adresi. Sadece OSPF çalıştıran router'lar bu adresi dinliyor. VXLAN multicast modunda da benzer şekilde VTEP'ler bir multicast grubuna üye oluyor ve birbirlerini bu şekilde keşfediyor.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ Unicast, multicast ve broadcast bunlar cihaz tarafindan arkaplanda otomatik olarak gerceklestirilen davranislar. ornegin bir cihazin unicast veya multicast olarak davranmasi gerektigini nasil belirtiyoruz?]
+
+Unicast → Hedef IP tek bir cihazın IP'si olduğunda otomatik unicast oluyor. Örneğin `ping 192.168.1.1` — bu unicast, ayrıca belirtmene gerek yok.
+Broadcast → Hedef IP subnet'in broadcast adresi olduğunda otomatik broadcast (ARP oldugunda kullanilir). Örneğin `192.168.1.255` — bu broadcast, otomatik.
+Multicast → Hedef IP `224.0.0.0/4` aralığında olduğunda multicast. Yani `224.x.x.x` ile `239.x.x.x` arası IP'ler multicast için ayrılmış özel adresler.
+
+Yani aslında hedef IP adresi hangi davranışın olacağını belirliyor:
+
+```
+Hedef IP = tek cihaz IP'si    → unicast (otomatik)
+Hedef IP = 192.168.1.255      → broadcast (otomatik)
+Hedef IP = 224.x.x.x          → multicast (otomatik)
+```
+
+VXLAN multicast modunda da şunu yapıyoruz: VTEP'e "239.1.1.1 multicast grubunu dinle" diyoruz.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ 224.x.x.x ile 239.x.x.x arasi multicasting yapabilmek icin ozel olarak ayrilmis IP adresleri ]
+
+IP adres aralıkları aslında belirli amaçlar için ayrılmış. IP adres uzayı IANA tarafından bölünmüş tıpkı bir şehirde farklı bölgelerin farklı amaçlar için ayrılması gibi.
+
+Önemli özel aralıklar:
+
+```
+10.0.0.0/8        → özel ağlar (ev, şirket)
+172.16.0.0/12     → özel ağlar
+192.168.0.0/16    → özel ağlar (en yaygın ev ağı)
+127.0.0.0/8       → loopback (kendine ping)
+224.0.0.0/4       → multicast
+```
+
+Multicast aralığı `224.0.0.0` - `239.255.255.255` bu aralıktaki IP'ler hiçbir zaman tek bir cihaza atanmıyor. Sadece grup iletişimi için kullanılıyor.
+
+Bu aralık da kendi içinde bölünmüş:
+
+```
+224.0.0.0/24    → yerel ağ multicast (OSPF, STP gibi protokoller)
+224.0.0.5       → OSPF router'ları
+224.0.0.6       → OSPF designated router'lar
+239.0.0.0/8     → yerel kullanım için ayrılmış (VXLAN gibi)
+```
+
+`239.x.x.x` aralığı özellikle "sen kendin kullanabilirsin" diye ayrılmış. VXLAN multicast grubu için buradan bir adres seçiyoruz.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ Broadcast ve ARP iliskisi nedir? bir cihaz ne zaman ARP atar? ]
+
+basit bir ifade ile bir makine bir diger makineye paket gonderecegi zaman hedefi ayni subnet icerisinde ki bir IP ise bu cihazin MAC adresini ogrenebilmek icin tum aga bu IP'ye sahip makinenin MAC adresini sorar ve agda ki cihazlar bu IP'ye sahip degilse (yani bu IP ile eslesmez ise) MAC adresi gondermez. Yalnizca bu IP ile eslesen cihaz "iste bu benim! ve MAC adresim buyur" MAC adresini istek atan makineye cevap olarak geri iletir.
+
+Yani bu sekilde ARP yalnizca ayni subnet'te atilir. Bunu da broadcast araciligiyla mumkun kilar.
+
+yapay zeka ile elde edilen cevaplar:
+
+{ bu unicast multicast ve broadcast ne oluyor? bunlar arkaplanda gerceklesen otomatik davranislar degil mi? ornegin broadcast'i cihaz ARP atatken yapmiyor mu ona belirtilen IP'ye ulasilmasi istendiginde? ayrica arp ne zaman atiliyor cihaz tarafindan her zaman mi? yoksa ayni subnet deger araligina sahip bir ip verildiginde mi? }
+
+Hoş geldin! Network dünyasına adım atmak bazen bir alfabeyi yeniden öğrenmek gibi hissettirebilir, ama merak etme; sorduğun sorular bu işin temel taşlarıdır.
+
+Düşüncen çok doğru: Bunlar genellikle arka planda, kullanıcı müdahalesi olmadan gerçekleşen otomatik davranışlardır. Ancak bir yönetici olarak trafiğin neden ve nasıl aktığını bilmek, sorun çözmede (troubleshooting) hayat kurtarır.
+
+Hadi bunları senin için netleştirelim:
+
+## 1. Trafik Tipleri: Kim, Kime Gönderiyor?
+
+Bu üç kavram, verinin ağdaki **hedef kitlesini** belirler.
+
+| Tip | Hedef | Örnek |
+| :--- | :--- | :--- |
+| **Unicast** | Birebir (One-to-One) | Sen Google’a bir paket gönderdiğinde sadece o sunucuya gider. |
+| **Broadcast** | Herkese (One-to-All) | Bir cihaz "Benim IP'm bu, burada kimler var?" dediğinde tüm ağa bağırır. |
+| **Multicast** | Belirli bir gruba (One-to-Many) | Bir video konferans yayınında sadece o yayına katılanlara veri gider. |
+
+## 2. ARP (Address Resolution Protocol) Nedir?
+
+Cihazlar birbirleriyle IP adresi üzerinden konuşmak isterler ama yerel ağda (Ethernet seviyesinde) iletişim kurmak için birbirlerinin **MAC adreslerine** ihtiyaç duyarlar.
+
+**Senin sorunla ilgili can alıcı nokta:**
+Evet, cihazın bir IP'ye ulaşmak istediğinde o IP'nin kime ait olduğunu (MAC adresini) bilmiyorsa **Broadcast** yapar. Bu "Bağırarak sorma" işlemine **ARP Request** denir.
+
+## 3. Cihaz Ne Zaman ARP Atar?
+
+Cihazın her saniye "başıboş" şekilde ARP atmaz. ARP'nin tetiklendiği durumlar şunlardır:
+
+* **İlk İletişim:** Bir IP'ye ilk kez paket göndereceğin zaman (Örn: `ping 192.168.1.50` dedin ve bilgisayarın bu IP'nin MAC adresini bilmiyor).
+* **Aynı Subnet Zorunluluğu:** ARP **sadece aynı subnet içindeki** cihazlar için atılır. Eğer gitmek istediğin IP seninle aynı subnet'te değilse, cihazın ARP'yi hedef IP için değil, kendi **Default Gateway**'i (yönlendiricisi) için atar.
+* **Önbellek (Cache) Silindiğinde:** Bilgisayarlar öğrendikleri MAC adreslerini bir tabloda tutar (`arp -a` komutuyla görebilirsin). Bu kayıtlar genellikle birkaç dakika sonra eskir ve silinir. Silindiğinde tekrar ARP atılır.
+* **Gratuitous ARP:** Bir cihaz ağa ilk bağlandığında, "Bu IP bende, kimsede var mı?" demek için kimse sormadan ARP yayınlayabilir.
+
+### Özetle Mantık Şöyle İşler:
+
+1.  **Kontrol:** Gitmek istediğim IP benimle aynı subnet'te mi?
+2.  **Evet ise:** "Bu IP'nin MAC adresi bende var mı?" (ARP Tablosuna bakılır).
+3.  **Yok ise:** **Broadcast** yayın yap: "Hey! 192.168.1.50 kimse MAC adresini söylesin!"
+4.  **Cevap:** Hedef cihaz kendi MAC adresini **Unicast** olarak sana döner.
+5.  **Sonuç:** Veri transferi artık Unicast olarak devam eder.
+
+Bu süreçlerin çoğu otomatik olsa da, bir network admin olarak örneğin bir "Broadcast Storm" (ağın aşırı trafikten kilitlenmesi) olduğunda bu mekanizmayı bilmek sorunu teşhis etmeni sağlar.
+
+{  arp, ilgili hedef ip'sinin mac adres degerini elde etmek icin tum aga broadcast araciligi ile bu ip'nin mac adresini sorma bicimi mi yani?  }
+
+Kesinlikle öyle! Mantığı tam on ikiden vurdun.
+
+Daha teknik ve detaylı bir ifadeyle; **ARP**, katman 3 (Network - IP) ile katman 2 (Data Link - MAC) arasındaki köprüdür. Senin de dediğin gibi, elindeki IP bilgisini kullanarak "fiziksel adresi" bulmanı sağlar.
+
+Bu süreci bir senaryo ile adım adım netleştirelim:
+
+### ARP Süreci Nasıl İşler?
+
+1.  **Sorgu (ARP Request):** Senin bilgisayarın ağa bir paket bırakır. Bu paketin içindeki hedef MAC adresi `FF:FF:FF:FF:FF:FF` şeklindedir. Bu "herkes okusun" demektir (**Broadcast**). Paketin içeriği şudur: *"IP adresi 192.168.1.20 olan arkadaş kimse, lütfen bana MAC adresini söylesin."*
+2.  **Dinleme:** Ağdaki tüm cihazlar bu paketi alır ve açar. Ancak IP adresi kendisiyle eşleşmeyen herkes paketi çöpe atar.
+3.  **Cevap (ARP Reply):** Sadece o IP'ye sahip olan cihaz, *"O benim! MAC adresim de şudur: AA:BB:CC:11:22:33"* der. Bu cevap doğrudan senin bilgisayarına gönderilir (**Unicast**).
+4.  **Kayıt (ARP Cache):** Bilgisayarın bu bilgiyi aldıktan sonra her seferinde ağda bağırmamak için bu bilgiyi **ARP Tablosuna** kaydeder.
+
+### Burada Dikkat Etmen Gereken Önemli Bir Nokta:
+
+Ağ yöneticisi olarak şunu bilmen çok kritik: **Broadcast mesajlar Router'ları (yönlendiricileri) geçemez.**
+
+* Eğer aradığın cihaz seninle **aynı yerel ağda (Subnet)** ise: ARP Broadcast ile ona ulaşabilirsin.
+* Eğer aradığın cihaz **başka bir ağda** ise (Örneğin bir web sitesi): Bilgisayarın o IP için broadcast yapmaz. Onun yerine, paketleri dış dünyaya taşıyacak olan **Default Gateway**'in (Router'ın) MAC adresini sorar.
+
+> **Küçük Bir İpucu:** Kendi bilgisayarındaki komut satırına (CMD) `arp -a` yazarsan, şu ana kadar bilgisayarının "bağırarak" öğrendiği ve hafızasına aldığı tüm IP-MAC eşleşmelerini görebilirsin.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[Unicast, multicast vb. methotlarin pratik olarak denenebilirligi icin uygun protokolu kullanan bir aracin gerekliligi uzerine  ]
+
+unicast, multicast gibi methotlarin nasil calistiklarini anlamak icin pratik olarak test yapilmak istenildiginde bunlara uygun protokolu kullanan bir aracin kullanilmasi gereklidir. ornegin asagida ki soru dogal olarak sorulabilir;
+
+{ bir cihaz da ag arayuzu olusturup buna multicast grup ip atamasi yapip diger cihazlarin bu sayede birbirlerini kesfedip kesfetmedigini test edemiyor muyuz? benim anlamadigim sey multicast grup ip'lerin kullanim bicimlerinin farkli olusu mu? }
+
+Yani burada kast edilmek istenen sey multicast'i VXLAN, OSPF vb. disinda nasil farkli bicimde test edebilirim? sorusudur.
+
+Yapay zekanin cevabi;
+
+Evet, aslında tam olarak VXLAN'da yaptığımız şey buydu — bir multicast grubuna katılıp cihazların birbirini keşfetmesi. Ama şunu anlamaya çalışıyorsun sanırım: "Multicast grup IP'sini VXLAN dışında da direkt kullanabilir miyim?" Cevap: Evet, ama şöyle düşün — multicast grup IP'si tek başına bir şey yapmıyor. Onu kullanan bir **uygulama veya protokol** gerekiyor.
+
+Örnekler:
+```
+224.0.0.5 → OSPF bu adresi kullanıyor
+239.1.1.1 → VXLAN bunu kullanıyor
+224.0.0.251 → mDNS bunu kullanıyor
+```
+
+Yani multicast bir "araç" — onu kullanan uygulama asıl işi yapıyor. Direkt "şu gruba katıl, birbirinizi bulun" diyemiyorsun araya bir protokol girmesi lazım. VXLAN'da bu protokol VXLAN'ın kendisiydi. OSPF'te OSPF'ti. Multicast bir taşıma mekanizması, içini dolduran protokol asıl işi yapıyor. 
+
+{Yani biz unicast'i ping ile test edebilmemizin sebebi bu o halde cunku icmp protokolu araciligiyla unicast mekanizmasi calisiyor sanirim degil mi? ben multicast grup ip'sini cihazlarin ag arayuzlerine atayip ping ile birbirlerinin hepsinden cevap alabilir miyim diye bir deney yapmak isitiyordum ancak anladigim kadariyla bu methotlarin kullanim sekilleri onlari sekillendirecek protokollere bagli. dogru mu anliyorum?}
+
+```
+Unicast  → ICMP (ping) ile test edebiliyorsun
+Broadcast → ping 192.168.1.255 ile test edebiliyorsun  
+Multicast → ping ile test edemiyorsun çünkü 
+            multicast grubunu dinleyen bir uygulama/protokol gerekiyor
+```
+
+Ping (ICMP) unicast protokolü — tek hedefe gidiyor. Multicast adresine ping atsan bile karşı tarafın o grubu dinlemesi gerekiyor, aksi halde cevap vermez.
+
+Senin deney fikrin aslında çok mantıklıydı — ama multicast'in çalışması için her iki tarafın da aynı grubu dinleyen bir uygulama çalıştırması şart.
+
+VXLAN'da tam bunu yaptık:
+- Her VTEP `239.1.1.1` grubunu dinledi
+- Birbirleriyle VXLAN protokolü üzerinden konuştular
+- Keşif gerçekleşti
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ VXLAN topolojisi kurulumu ornegi (multicast modu ile) ]
+
+statik mod ile kurulan VXLAN topoloji orneginden neredeyse hicbir fark yok tek farkli kisim "vxlan10" ag arayuzunde yapilan kongigurasyonel farklilik olacaktir. statik modda "remote" ve "local" degerler manuel olarak veriliyordu. ancak multicast modda tek bir grubun IP adresini her iki VTEP cihazinda da belirterek birbirlerini buradan kesfedip etkilesim ve iletisim kurmalari saglanacak;
+
+bunun icin her iki cihazda da bu komut satiri uygulanmalidir (hangi ethernet arayuz portuna baglanilacagi topolojizinize gore degiskenlik gosretebilir burada her iki VTEP cihazi birbirlerine "eth1" uzerinden iletisime geciyorlar);
+
+router-1/2;
+```
+ip link add vxlan10 type vxlan id 10 group 239.1.1.1 dstport 4789 dev eth1
+```
+
+{ statik modda "remote" ve "local" olarak her iki cihazda da komut satirinda bunlarin underlay IP degerlerini (10.0.0.1/2 gibi) belirtiyorduk. Ancak multicast'de tamamen bu ag arayuzune farkli bir grup IP'si atiyoruz. VXLAN overlay olarak calisiyorsa statik modda neden underlay IP degerlerini belirttik? }
+
+VXLAN tüneli UDP üzerinden çalışıyor yani fiziksel ağ üzerinden gidiyor. Bu fiziksel ağda paket gönderebilmek için fiziksel hedef IP lazım.
+
+Statik modda:
+"Remote 10.0.0.2" diyorsun yani "VXLAN paketlerini 10.0.0.2'ye gönder." Tünel trafiği direkt o IP'ye unicast gidiyor. Ama sorun şu: 3. bir VTEP eklenirse ona da ayrıca `remote` tanımlamak gerekiyor (statik modun manuelliginden kaynakli dezavantiji).
+
+Multicast modda:
+"Remote" yok onun yerine `group 239.1.1.1` var. VXLAN paketleri bu multicast grubuna gönderiliyor. Fiziksel ağdaki router multicast trafiğini gruba üye olan herkese dağıtıyor.
+
+Yani her iki modda da fiziksel ağ (underlay) kullanılıyor VXLAN paketi fiziksel olarak taşınmak zorunda. Fark şu:
+
+```
+Statik   → "şu spesifik IP'ye gönder" (unicast)
+Multicast → "bu gruba gönder, kim dinliyorsa alsın" (multicast)
+```
+
+Underlay IP'leri her iki modda da kullanılıyor statik modda açıkça yazıyorsun, multicast modda ise fiziksel ağın multicast trafiği otomatik dağıtıyor.
+
+{ bir multicast grubuna en fazla kac host veya uye tanimlanabiliyor? Yani bu multicast grub IP'sini dinleyen en fazla kac cihaz olabilir? bir limit var mi? }
+
+Teknik olarak bir multicast grubunda binlerce cihaz olabilir. Belirgin bir limit yok. Ama pratikte çok fazla VTEP aynı grupta olursa multicast trafiği artar ve ağ yükü artar.
+
+Nasıl buluşuyorlar?
+VTEP 239.1.1.1 grubuna üye oluyor. Bir paket iletmek istediğinde bu gruba gönderiyor. Aynı gruptaki tüm VTEP'ler paketi alıyor ve "bu benim için mi?" diye bakıyor.
+
+Bu sayede otomatik kesif ve iletim gerceklesiyor.
+
+vxlan10 sanal ag arayuzu multicast mod ile ayarlandiktan sonra bridge ayari tipki statik mod orneginde oldugu gibi yapilmalidir.
+
+tum bu ayarlarin ardindan host'lara ayni subnet'de olacak bicim de IP atamalari yapildigi taktirde ping ile paketlerin iletimi test edilebilir.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ bir ag interface'inin detaylarini daha da fazla gorme komutu ]
+
+```
+ip -d link show <interface>
+```
+
+`-d` (detail) flag'i ilgili arayüzün detaylarını gösteriyor. VXLAN arayüzünde çalıştırırsan VNI ID'si, grup IP'si, port numarası gibi tüm VXLAN yapılandırmasını görebilirsin. 
+
+ornegin;
+
+```
+ip -d link show vxlan10
+```
+
+komutu uygulandiginda ag arayuzunun hangi multicast grub IP'si kullanildigi saptanabilir.
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+[ bridge ag arayuzune bagli port'larin incelenmesi ]
+
+bridge'in sanal bir switch olduguna dair benzetme yapilmisti. ayni sekilde bu sanal switch'in port'lari `brctl showmacs <bridge_name>` seklinde listelenip incelenebilir.
+
+burada onemli bir kac noktalar mevcut;
+
+ilki, uzun bir muddet paket iletimi (yani ping atilmazsa) cihazlarin mac adresleri listede gozukmeyecektir. cunku Bridge MAC adreslerini dinamik olarak öğreniyor. tıpkı gerçek bir switch gibi. Bir cihaz paket gönderince bridge "bu MAC adresi bu porttan geliyor" diye tabloya yazıyor. Paket gelmezse bilmiyor.
+
+"is local?" kolonu;
+bu kolon bridge'e yerel olarak bagli olan veya yerel olarak bagli olmadan dolayli sekilde ogrenilmis cihazlarin yerel olarak baglandiysa "yes" dolayli olarak elde edilmis bir MAC adresi durumu varsa "no" ibarelerinin belirtilgi konumdur. Yani bridge hem yerel hem uzak cihazların MAC adreslerini biliyor. sanki aynı switch'e bağlıymış gibi. Bu VXLAN'ın "Layer 2 uzatma" yaptığının kanıtı.
+
+Router-1'de Host-1 eth0'a bağlı. eth0 bridge'e bağlı. Ama Host-1'in MAC adresi bridge tarafından eth0 portundan öğrenildi — yani bridge için bu MAC adresi bir port üzerinden geldi, direkt bridge'in kendisine ait değil.
+
+is local = yes - sadece bridge'in kendi MAC adresleri için geçerli — yani br0 arayüzünün kendisine ait MAC.
+is local = no - ise bridge'in bir portundan öğrendiği MAC adresleri.
+
+Yani hem Host-1 hem Host-2 bridge tarafından öğrenilmiş biri eth0'dan, diğeri vxlan10 tünelinden. İkisi de "no" çünkü ikisi de öğrenilmiş, bridge'in kendi MAC'i değil.
+Bilakis yes olanlara bakilacagi zaman router-1 veya router-2 cihazlarinin eth0 ve vxlan10 olan arayuzlerinin MAC adresleri gozlemlenebilir. Bunlar bridge'in kendi portlarının MAC adresleri bridge bunları zaten biliyor, öğrenmesi gerekmiyor. bu yuzden paket iletimi zaman asimi olsa dahi kaybolmuyorlar.
+
+"ageing time" kolonu;
+
+MAC adresi tabloya yazıldıktan sonra belirli bir süre sonra siliniyor — çünkü o cihaz artık aktif olmayabilir. ageing time bu süreyi gösteriyor. Süre dolunca MAC tablodan siliniyor — bu yüzden ping atmayınca kayboluyor.
+
+#############################################################
+#                                                           #
+#                                                           #
+#                                                           #
+#      ____       _      ____    _____           _____      #
+#     |  _ \     / \    |  _ \  |_   _|         |___ /      #
+#     | |_) |   / _ \   | |_) |   | |    _____    |_ \      #
+#     |  __/   / ___ \  |  _ <    | |   |_____|  ___) |     #
+#     |_|     /_/   \_\ |_| \_\   |_|           |____/      #
+#                                                           #
+#                                                           #
+#                                                           #
+#############################################################
+
+
+[ Proje teslimi ve organizasyonunun nasil olmasi gerektigi ]
+
+proje ile ilgili istedigi bir sey su;
+PDF'in kastettiği şu; her cihazın yapılandırmasını ayrı bir dosyaya kaydetmeni istiyor. her router ve host için elle yazılmış config dosyaları.
+Dizin yapısına bak — PDF'te şu dosyalar vardı:
+
+```
+P2/
+├── P2.gns3project
+├── _wil-1_g      ← router-1 config
+├── _wil-1_host   ← host-1 config
+├── _wil-1_s      ← switch config
+├── _wil-2_g      ← router-2 config
+└── ...
+```
+
+`_g` → router (gateway) config dosyası
+`_host` → host config dosyası
+`_s` → switch config dosyası
+
+Bu dosyaların içine o cihaza uyguladığın komutları yazıyorsun — yorum satırlarıyla açıklayarak. Örneğin router-1 config dosyası:
+
+```bash
+# Router-1 VXLAN yapılandırması
+# VTEP olarak çalışıyor
+
+# VXLAN arayüzü oluştur
+ip link add vxlan10 type vxlan id 10 group 239.1.1.1 dstport 4789 dev eth1
+
+# Bridge oluştur
+ip link add br0 type bridge
+...
+```
+Bu sayede GNS3 projesi olmasa bile birisi bu dosyalara bakarak topolojiyi yeniden kurabilir.
+
+digeri ise topolojinin kendisi yani semasi ancak ici doldurulmus olarak degil. bu GNS3'te `File -> Export Project` olarak .gns3project uzantisi seklinde ciktisi alinabilir. PDF'te cikti icin hangi ayarlarin secilmesi gerektigi belirtilmis
