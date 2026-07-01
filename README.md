@@ -10,19 +10,19 @@ Yazımız da tıpkı proje dokümanında olduğu gibi bölüm bölüm ve her bö
 
   - ### [Part 1: Docker ile GNS3 konfigrasyonu](P1/README.md)
     
-    <img src="Images/part1.png" style="max-width: 60%; height: auto;">
+    <img src="Images/part1.png" style="width: 45%; height: auto;">
     
     Bu bölüm de mevcut sistemimize GNS3'ün nasıl kurulacağını ve Docker entegrasyonunu nasıl gerçekleşemesi gerektiği açıklanacaktır. Ayrıca GNS3'ün nasıl kullanılması gerektiği ve programda ki terminolojilerin ne anlama geldiği tarzında açıklamalar yapılacaktır.
 
   - ### [Part 2: VXLAN'ı keşfetmek](P2/README.md)
     
-    <img src="Images/part2.png" style="max-width: 60%; height: auto;">
+    <img src="Images/part2.png" style="width: 45%; height: auto;">
     
     Bu bölüm aynı ağda ki cihazların birbirlerinden nasıl izole edilebilceğini açıklanmakta ve farklı subnet'lerde (uzak ve farklı lokasyonlarda) bulunan cihazların sanal bir ağ katmanı aracılığıyla nasıl sanki aynı subnetteymiş gibi davrandıkları açıklanacaktır.
 
   - ### [Part 3: EVPN ile BGP'yi keşfetmek](P3/README.md)
     
-    <img src="Images/part3.png" style="max-width: 60%; height: auto;"> 
+    <img src="Images/part3.png" style="width: 45%; height: auto;"> 
 
   - ### [E-ticaret sitesine yolculuk](#proje-teslimi-ve-organizasyonu)
 
