@@ -1,3 +1,4 @@
+#!/bin/sh
 # First, we add underlay IP address for this host to `eth0` interface
 ip addr add 192.168.1.1/24 dev eth0
 

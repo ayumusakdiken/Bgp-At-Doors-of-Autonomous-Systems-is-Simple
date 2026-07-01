@@ -1,3 +1,4 @@
+#!/bin/sh
 # First, we add underlay IP address for this router to `eth1` interface
 ip addr add 192.168.1.254/24 dev eth1
 

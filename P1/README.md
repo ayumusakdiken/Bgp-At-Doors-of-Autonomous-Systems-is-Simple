@@ -37,26 +37,26 @@
 
 
 ## Part 1
-Bu bölüm de mevcut sisteme GNS3'ün nasıl kurulacağını ve ona Docker entegrasyonunun nasıl gerçekleştirilmesi gerektiği açıklanacaktır. Ayrıca GNS3'ün nasıl kullanılması gerektiği ve programda ki terminolojinin ne anlama geldiği tarzında açıklamalar yapılacaktır.
+
 ### GNS3 Kurulum Sorunları ve Çözümleri
-Proje dokümanında projenin bir sanal makine de yapılması isteniliyor. Ayrıca GNS3 ve onun bağımlılık paketleri mevcut sisteminizi gereksiz yere şişirip kirletebileceğinden tüm işlemleri bir sanal makine de yapmak en iyisi olacaktır. Tüm işlemler **Debian 13** üzerinden yürütülmüştür. Bu yüzden GNS3 kurulumu esnasında yaşanan sorunların bir kısmı Debian 13 ile ilgilidir. Bu yüzden sanal makineye Debian 13 yükleyip GNS3 kurulumu yapmaya çalışan kimselerin burada ki sorunları yaşaması muhtemeldir.
+Proje dokümanında projenin bir sanal makine üzerinde yapılması isteniliyor. GNS3 ve bağımlılık paketleri mevcut sisteminizi gereksiz yere şişirip kirletebileceğinden tüm işlemleri bir sanal makine de yapmak da en iyisi olacaktır. Tüm işlemler **Debian 13** üzerinden yürütülmüştür. Bu yüzden GNS3 kurulumu esnasında yaşanan sorunların bir kısmı Debian 13 ile ilgilidir.
 
 #### `dynamips` ve `software-properties-common` paketleri sorunu
-GNS3'ün resmi web sitesinden Debian ve Debian tabanlı dağıtımlar için GNS3 ve ona gerekli olan bağımlılık paketlerini yüklemeye çalışırken bağımlılık hatası alınır. Debian 13 ve Debian 13 tabanlı dağıtımlarda, `dynamips` ve `software-properties-common` paketleri `apt` deposundan kaldırılmıştır; bu nedenle, `dynamips` olmadan yükleme yapıp ardından `dynamips`'i ayrı olarak yükleyeceğiz. Önce resmi web sitesinde ki yükleme adımlarında ki komut satırından `dynamips` ve `software-properties-common` paketlerini kaldırıp GNS3 için gerekli paketleri sisteme yükleyin;
+GNS3'ün resmi web sitesinden Debian ve Debian tabanlı dağıtımlar için GNS3 ve gerekli olan bağımlılık paketlerini yüklemeye çalışırken bağımlılık hatası alınır. Debian 13 ve Debian 13 tabanlı dağıtımlarda, `dynamips` ve `software-properties-common` paketleri `apt` deposundan kaldırılmıştır; bu nedenle, `dynamips` olmadan yükleme yapıp ardından `dynamips`'i ayrı olarak yükleyeceğiz. Önce resmi web sitesinde ki yükleme adımlarında ki komut satırından `dynamips` ve `software-properties-common` paketlerini kaldırıp GNS3 için gerekli paketleri sisteme yükleyin;
 
-```
+```sh
 sudo apt install python3 python3-pip pipx python3-pyqt6 python3-pyqt6.qtwebsockets python3-pyqt6.qtsvg qemu-kvm qemu-utils libvirt-clients libvirt-daemon-system virtinst ca-certificates curl gnupg2 
 ```
 
 Şimdi `dynmaips` paketini ayrı olarak sisteme yükleyin;
 
-```
+```sh
 wget http://ftp.us.debian.org/debian/pool/non-free/d/dynamips/dynamips_0.2.14-1_amd64.deb
 ```
 
 ardından;
 
-```
+```sh
 sudo dpkg -i dynamips_0.2.14-1_amd64.deb
 ```
 
@@ -67,59 +67,62 @@ Bunun ardından resmi web sitesinde ki `pipx` ile GNS3 server ve GUI'ı kurma ad
 Bu hata genelde GNS3’ün çalıştığı sistemde busybox bulunamadığında çıkar — yani sorun çoğu zaman Docker image içinde değil, GNS3 Server’ın kurulu olduğu ana makinede.
 
 Busybox'ı kur:
-```
+
+```sh
 sudo apt update
 sudo apt install busybox-static
 ```
 
 Kurulduğunu doğrula:
-```
+
+```sh
 which busybox
 ```
 
 Eğer çıktı:
-```
+
+```sh
 /usr/bin/busybox
 ```
 
-şeklindeyse tamamdır.
+şeklindeyse busybox indirilmiştir.
 
 #### VPCS ağ cihazları ile ilgili hatalar
 ##### `No path to a VPCS executable has been set` hatası
 VPCS cihazlarını topolojinizde kullanmaya çalıştığınızda bu hata GNS3 tarafından verilebilir. Bunun sebebi ana sisteme `vpcs` paketinin kurulu olmamasından kaynaklıdır;
 
-```
+```sh
 sudo apt install vpcs
 ```
 
 ##### `VPCS executable version must be >= 0.6.1 but not a 0.8` hatası
 `vpcs` paketini sisteme kurup tekrardan topolojiyi ayağa kaldırmaya çalıştığınızda bu seferde bir _**version missmatch**_ hatası alabilirsiniz. Bunu çözmek için versiyonu yüksek olan `vpcs` paketini kaynak koddan derleyip sisteme yüklemek gereklidir bunun için;
 
-```
+```sh
 wget https://github.com/GNS3/vpcs/archive/refs/tags/v0.8.3.zip
 ```
 
 indirdikten sonra, `.zip` dosyasını açın ve içinde ki `src` klasörüne gidin;
 
-```
+```sh
 cd v0.8.3/src
 ```
 
 ardından VPCS scrpit'ini çalıştırmak için aşağıdaki komutu çalıştırın bu kaynak dosyaları derleyecektir;
 
-```
+```sh
 ./mk.sh
 ```
 
 derleme işlemi tamamlandığında, VPCS'nin eski sürümünü kaldırın;
 
-```
+```sh
 sudo rm /usr/bin/vpcs
 ```
 
 Ardından yeni versiyonu `/usr/bin/` dizinine kopyalayın. Örneğin:
 
-```
+```sh
 sudo cp /home/$USER/v0.8.3/src/vpcs /usr/bin/vpcs
 ```
 
@@ -127,51 +130,53 @@ sudo cp /home/$USER/v0.8.3/src/vpcs /usr/bin/vpcs
 
 Debian 13'te uBridge paketi depoda bulunmadığından, **kaynak koddan derleme** gerekiyor. Bunun için önce gerekli bağımlılıkları kurman, sonra GitHub'dan paketi indirip derlemen gerekiyor;
 
-Öncelikle gerekli bağımlılıkları sisteme kur;
+Öncelikle gerekli bağımlılıkları sisteme kuruyoruz;
 
-```
+```sh
 sudo apt install git build-essential libpcap-dev -y
 ```
 
-ardından uBridge'i Github'dan çek ve derle;
+ardından uBridge'i Github'dan çekip ve derleyelim;
 
-```
+```sh
 git clone https://github.com/GNS3/ubridge.git
 cd ubridge
 make
 ```
 
-derleme tamamlandıktan sonra sisteme uBridge'i kur;
+derleme tamamlandıktan sonra sisteme uBridge'i kurabiliriz;
 
-```
+```sh
 sudo make install
 ```
 
-uBridge `/usr/local/bin/ubridge` konumuna kurulacaktır.
+uBridge `/usr/local/bin/ubridge` dizinine kurulacaktır.
 
-Ardından uBridge'e ağ yetkilerini ver;
+Ardından uBridge'e ağ yetkilerini verelim;
 
-```
+```sh
 sudo setcap cap_net_admin,cap_net_raw=ep /usr/local/bin/ubridge
 ```
 
-kullanıcını gruplara ekle;
+kullanıcını gruplara ekleyelim;
 
-```
+```sh
 sudo usermod -aG wireshark $(whoami)
 ```
 
-Sistemi yeniden başlat;
-```
+Sistemi yeniden başlatalım;
+
+```sh
 sudo reboot
 ```
 
-Kurulumu doğrula;
-```
+Kurulumu doğrulayalım;
+
+```sh
 ubridge --version
 ```
 
-Çıktı olarak `uBridge version 0.9.x` gibi bir şey görürsen kurulum başarılıdır. Ardından GNS3'ü aç, hata gitmiş olmalı. Sorun devam ederse GNS3 içinde `Edit → Preferences → Server` kısmında uBridge yolunu `/usr/local/bin/ubridge` olarak manuel ayarla.
+Çıktı olarak `uBridge version 0.9.x` gibi bir şey görürsek kurulum başarılıdır. Ardından GNS3'ü açtığımızda hata gitmiş olmalı. Sorun devam ederse GNS3 içinde `Edit → Preferences → Server` kısmında uBridge yolunu `/usr/local/bin/ubridge` olarak manuel ayarlayalım.
 
 #### GNS3 SIP Module ve QT sorunu
 `pipx` ile kurulan GNS3, eksik sistem kütüphaneleri nedeniyle başlamayabilir;
@@ -181,17 +186,20 @@ ubridge --version
 
 Çözüm için;
 
-1. **PyQt6'yı pipx ortamına inject et:**
+1. **PyQt6'yı pipx ortamına inject edelim:**
+
 ```bash
 pipx inject gns3-gui PyQt6
 ```
 
-2. **Eksik XCB sistem kütüphanelerini kur:**
+2. **Eksik XCB sistem kütüphanelerini kuralım:**
+
 ```bash
 sudo apt install libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0
 ```
 
-3. **GNS3'ü başlat:**
+3. **GNS3'ü başlatalım:**
+
 ```bash
 gns3
 ```
@@ -225,21 +233,23 @@ Açıldığında `Edit → Preferences → Server` bölümüne git ve orada **lo
 ### GNS3 Temelleri
 
 #### GNS3'te "adapter" ne demek?
-GNS3'te router cihazina verilen **adapter** sayısı o cihaza kaç cihazın bağlanılabileceğini belirtir. Örneğin; **_2 adapter_** derken GNS3'ün o container'a kaç tane sanal ethernet portu vereceğini belirliyoruz. Yani; Fiziksel bir router satın aldığında üzerinde kaç ethernet portu varsa o kadar cihaza bağlanabiliyorsun. GNS3'de adapter sayısı tam olarak bu. O sanal router'ın kaç ethernet portuna sahip olacağını belirliyor. Yani bu yüzden `ip a` komutunun çıktısı olarak **2 adapter = 2 ethernet portu = eth0 ve eth1** arayüzü görüyorsun.
+GNS3'te router cihazina verilen **adapter** sayısı o cihaza kaç cihazın bağlanılabileceğini belirtir. Örneğin **_2 adapter_** dediğiniz takdirde; `ip a` komutunu ilgili makine üzerinde çalıştırırsanız çıktı olarak **eth0 ve eth1** sanal internet arayüzlerini görürsünüz.
+
 #### GNS3 Web Client ile Web üzerinden GNS3 çalıştırmak
 GNS3 yazılımı iki parçadan oluşuyor; GNS3 GUI (client kısmı) ve GNS3 server kısmı.
 GNS3 server asıl işi yapan kısım. Container'ları başlatıyor, bağlantıları kuruyor, trafiği yönetiyor. GUI ise sadece görsel arayüz. İkisi ayrı olduğundan GNS3 server uzak bir makinede de çalışabilir. Herhangi bir PC'de ki GNS3 GUI (cilent) ile bağlanırsın ve bu ayrım sayesinde GNS3'ün server kısmını uzak bir sunucuya kurup bunu dışarıdan erişilebilir hale getirdikten sonra herhangi bir GNS3 client'ından bu server'a bağlanarak GNS3 çalıştırılabilir hale getirebilirsin. Ortak çalışmalar için kullanışlı bir çözüm olabilir.
+
 #### GNS3'ün modüler bir yazılım olması üzerine
-GNS3 bir simülasyon programı ise router, end devices vb. ağ cihazlarını ve öğelerini hazır olarak barındırması gerekmez mi? Neden bazı ağ cihazları mevcut iken (ethernet switch, VPCs vb.) bazı ağ cihazları (routers vb.) GNS3 içerisinde hazır olarak mevcut değil? Tarzında soru sorulabilir. Bunun cevabı GNS3'ün tasarım biçimindedir. GNS3'ün tasarım hedefi şu: "Ben sadece topolojiyi yöneteyim, cihazları sen oluştur ve içini sen doldur." Bunun avantajı esneklik — istediğin router yazılımını, istediğin işletim sistemini kullanabiliyorsun. Eğer GNS3 her şeyi içine gömseydi hem çok büyük olurdu hem de her yeni teknoloji için GNS3'ü güncellemen gerekirdi. İşte bu sayede GNS3'ün Docker ile entegrasyonuyla istenilen imajlar ile istenilen ağ cihazı oluşturulabilir ve bu GNS3'e entegre edilip ağ topolojilerinde kullanılabilir hale getirilebilir. Docker'ın yanı sıra VPCS gibi PC simulasyon araçlarının kullanılabilmesinin sebebi tamamen GNS3'e entegre edilmesidir. Yani ana makinenize `vpcs` paketini yüklemediyseniz GNS3'te bu mini PC simülatörlerinin kullanımı mümkün değildir. Bunlar GNS3'e has gömülü ağ cihazları değildir. Tıpkı Docker'da olduğu gibi entegre edilmesi gereken araçlardır. Yani `vpcs` paketini GNS3 haricinde de ana makineye yükleyip kullanabilirsiniz bir bağımlılığı yoktur. 
+GNS3 bir simülasyon programı ise router, end devices vb. ağ cihazlarını ve öğelerini hazır olarak barındırması gerekmez mi? Neden bazı ağ cihazları mevcut iken (ethernet switch, VPCs vb.) bazı ağ cihazları (routers vb.) GNS3 içerisinde hazır olarak mevcut değil? Tarzında soru sorulabilir. Bunun cevabı GNS3'ün tasarım biçimindedir. GNS3'ün tasarım hedefi şu: "Ben sadece topolojiyi yöneteyim, cihazları sen oluştur ve içini sen doldur." Bunun avantajı esneklik — istediğin router yazılımını, istediğin işletim sistemini kullanabiliyorsun. Eğer GNS3 her şeyi içine gömseydi hem çok büyük olurdu hem de her yeni teknoloji için GNS3'ü güncellemen gerekirdi. İşte bu sayede GNS3'ün Docker ile entegrasyonuyla istenilen imajlar ile istenilen ağ cihazı oluşturulabilir ve bu GNS3'e entegre edilip ağ topolojilerinde kullanılabilir hale getirilebilir. Docker'ın yanı sıra VPCS gibi PC simulasyon araçlarının kullanılabilmesinin sebebi tamamen GNS3'e entegre edilmesidir. Yani ana makinenize `vpcs` paketini yüklemediyseniz GNS3'te bu mini PC simülatörlerinin kullanımı mümkün değildir. Bunlar GNS3'e has gömülü ağ cihazları değildir. Tıpkı Docker'da olduğu gibi entegre edilmesi gereken araçlardır. 
+
 #### Proje dokümanında öğreticilik açısından kasıtlı olarak yapıldığını düşündüğüm busybox kafa karıştırması
 Proje dokümanında docker image'ler de **busybox** veya ona eşdeğer bir paketin mevcut bulunması istendiği belirtiliyor. Bu ayarlanıp bir topoloji ayağa kaldırılmaya çalışıldığı zaman GNS3 `no path busybox..` hatası veriyor. Bu hata alındığında proje de docker image'ler de bulunulması istenilen **busybox** paketi ile ilgili bir anlığına sorun yaşanıldığı sanılabiliyor. Ancak sorunun bununla bir ilgisi olmadığının bilinmesi gerek. Çünkü ana makine de `gns3server` docker konteynerlarını ayağa kaldırmadan evvel birkaç hazırlık yapması gerekiyor ve bunları belirli script'ler aracılığıyla sağlıyor. Bu script'lerde de busybox komutları kullanıldığından aslında ana makinenin `busybox` paketine sahip olması gereklidir. Sorunun docker image'lerde yüklenmeye çalışılan busybox paketiyle bir ilgisi yoktur. Bu yanılgıya düşülmemelidir. GNS3'ün bu script'ler de busybox kullanmasının sebebi de `gns3server`'ın yapacağı hazırlıkların her farklı işletim sistemin de aynı şekilde çalışmasını sağlamak üzerine olduğundandır. Çünkü farklı Linux işletim sistemlerinde temel Linux komutları (ls, cp, mv vb.) farklı davranışlar sergileyebildiğinden `gns3server`'ın hazırlığı farklı sonuçlar verebilir. Bunun olmaması için her farklı makine de aynı davranışlar ile aynı hazırlıkların mümkün kılınabilmesi için busybox kullanılmaktadır. Çünkü busybox komutlarının tipik davranışı olarak işletim sistemi farklı da olsa aynı davranışları sergileyecektir.
 
-GNS3'ün hazırlık script'lerinden `init.sh` script'i şöyle başlıyor:
-```
+GNS3'ün hazırlık script'lerinden `init.sh` script'i nasıl başladığını bakmak isteyebilirsiniz:
+```sh
 #!/gns3/bin/busybox sh
 ```
 
-İşte tam bu yüzden proje dokümanında docker image'lerine `busybox` kurdurması tamamen kafa karışıklığı yaratmak için ancak bu kafa karışıklığını yaratılmak istenmesinin sebebi kasıtlı. Bu kasıt GNS3'ün altyapısında `busybox`'ın nasıl kullanıldığını öğretmek/anlatmak için. Container içerisine kurduğumuz `busybox` ile ilgili hiçbir ilişiği yok. Yani proje bizden image'lerde busybox istemeseydi de bizim ana makinemize busybox kurmamız gerekecekti çünkü GNS3'ün ihtiyacı var hazırlık script'leri için. Bu da onun bağımlılık paketi olduğu anlamına geliyor. 
 #### Docker konteynerlar çalıştıktan sonra içlerinde barındırılan `/gns3` klasörü ve script'leri
 Docker imajları ile oluşturulmuş ağ cihazlarının GNS3'de ki bir topoloji de kullanılıp bu topoloji ayağa kaldırıldıktan sonra bu ağ cihazlarının terminal ortamına girildiğinde `/gns3` ve bu klasörün içerisinde yine GNS3 hazırlık script'leri görülebilir. Bu klasör ve script'lerin neden halen içlerinde barındırıldığına dair bir soru yöneltilecek olursa; Bu scriptler GNS3 server ile container arasındaki köprü olmasındandır. Kabaca düşünülecek olursa konteynerda yapılan değişikliklerin (ip adresi atama ve diğer benzeri konfigürasyonlar) haberi `gns3server`'a iletilmesi gerekli ki `gns3server`'da bunu işlesin ve GNS GUI'da bunu yansıtsın. Bu yüzden bu script'ler konteyner'a mount ediliyor. Ve temel olarak GNS3 server her container'ı başlatırken kendi `init.sh` scriptini container'a mount ediyor. Bu script şunları yapıyor;
 
@@ -252,12 +262,14 @@ Kabaca genel yapı;
 GNS3 GUI → GNS3 Server → init.sh (host busybox ile çalışır) → Container başlar → Telnet ile terminal açılır
 ```
 
-Script'ler için `/gns3` klasöründe ki `bin` klasörünün altında ki `busybox` kullanılıyor. Bunu da ana makineden kopyalıyor. Ayrıca madem `/gns3` klasörü docker konteynerına kopyalanıyor ve bununla beraber ana makinede ki `busybox` aracıda kopyalanmış oluyor o zaman buna müteakip şöyle bir trick ve optimizasyon yapilabilir; GNS3 zaten konteynerde ki `/gns3` klasörüne busybox'i kopyaladığından ötürü Docker image'e ekstradan bir daha busybox paketinin kurulmasına gerek yoktur. Ancak buna uygun bir Dockerfile veya Dockerfile'ın çalıştıracağı bir script hazırlanması gerekli ki konteyner `/gns3/bin/busybox` dizininde ki busybox'i uygun şekilde çalıştırdın aksi taktirde nedeni bilinmeyen şekilde konteyner hemen `exited` durumuna düşüyor. Script'in nasıl hazırlanması gerektiğine ipucu olarak proje dokümaninda Part 1 bölümünde ki görseller incelenebilir. Uygun script hazırlandığı taktirde proje dokümanında ki busybox isteğini karşılar nitelikte olur ve konteyner daha optimize olur.
+Script'ler için `/gns3` klasöründe ki `bin` klasörünün altında ki `busybox` kullanılıyor. Bunu da ana makineden kopyalıyor. Ayrıca madem `/gns3` klasörü docker konteynerına kopyalanıyor ve bununla beraber ana makinede ki `busybox` aracıda kopyalanmış oluyor o zaman buna müteakip şöyle bir trick ve optimizasyon yapilabilir; GNS3 zaten konteynerde ki `/gns3` klasörüne busybox'i kopyaladığından ötürü Docker image'e ekstradan bir daha busybox paketinin kurulmasına gerek yoktur. Ancak buna uygun bir Dockerfile veya Dockerfile'ın çalıştıracağı bir script hazırlanması gerekli ki konteyner `/gns3/bin/busybox` dizininde ki busybox'i uygun şekilde çalıştırabilsin aksi taktirde nedeni bilinmeyen şekilde konteyner hemen `exited` durumuna düşüyor. Script'in nasıl hazırlanması gerektiğine ipucu olarak proje dokümaninda Part 1 bölümünde ki görseller incelenebilir. Uygun script hazırlandığı taktirde proje dokümanında ki busybox isteğini karşılar nitelikte olur ve konteyner daha optimize olur.
+
 ### Temel Ağ Kavramları
 #### `ip a` komutunun çıktısında gözüken ağ arayüzlerinin anlamları
 `ip a` (veya `ip addr`) komutu mevcut cihazın **ağ arayüzlerini** gösteriyor. Şöyle ki: Fiziksel bir bilgisayarda ağ kartı var — ethernet portu, Wi-Fi kartı gibi. Bunların her biri bir ağ arayüzü. `eth0`, `eth1` bunların sanal karşılıkları/temsilleri — her biri bir ethernet portu. Bağladığın her kablo bir `eth` arayüzüne denk geliyor. `lo` ise **loopback** — fiziksel bir port değil, cihazın kendisiyle konuşması için özel bir sanal arayüz. `127.0.0.1` adresi hep buraya ait. `enp` öneki ile başlayan isimler ise daha yeni Linux sistemlerde kullanılan isimlendirme standardı — `eth0` yerine donanımın fiziksel konumuna göre isim veriliyor.
+
 #### Router yazılımı ne demek? Router yazılımı bir cihaza indirildiğinde ne oluyor?
-Fiziksel olarak bir router ile normal bir bilgisayar arasında aslında çok fark yok — ikisi de bir işlemci, RAM, ağ kartlarından oluşuyor. Fark şurada: **router yazılımı.**
+Fiziksel olarak bir router ile normal bir bilgisayar arasında aslında çok fark yok — ikisi de bir işlemci, RAM, ağ kartlarından oluşuyor. Fark şurada: 
 
 Router yazılımı bir cihaza şu yetenekleri kazandırıyor:
 
@@ -275,18 +287,19 @@ Biz de tam bunu yaptık — Docker konteynera FRR kurarak ona router nitelikleri
 - OSPF ile komşularını keşfedebiliyor (konfigüre edildiği taktirde)
 - Paketleri doğru yöne yönlendirebiliyor
 
-Yani "router" aslında bir donanım değil, bir **rol** — ve bu rolü yazılım belirliyor. Bu yazılım makineye kurulduğunda makine router nitelikli hale formlandırılabilir demek oluyor. Bir Laptop, mobil cihaz üzerine router yazılımı kurulabiliyorsa bu cihazlarda router cihazı gibi davrandırılabilir. Cisco, Juniper gibi şirketlerin router'ları da özünde aynı şey — özel donanım üzerinde çalışan router yazılımları. FRR ise bu yazılımın açık kaynaklı versiyonu.
+Yani "router" aslında bir donanım değil, bir **rol** — ve bu rolü yazılım makineye veriyor. Bir Laptop, mobil cihaz üzerine router yazılımı kurulabiliyorsa bu cihazlarda router cihazı gibi davrandırılabilir. Cisco, Juniper gibi şirketlerin router'ları da özünde aynı şey — özel donanım üzerinde çalışan router yazılımları. FRR ise bu yazılımın açık kaynaklı versiyonu.
 
 #### FRR yazilim çatısı altında ki diğer yazılımların işlevleri
 Zebra ve Quaagga FRR'nin koordinatörleri ancak aktif olarak FRR'da **zebra** kullanıldığından zebra routing tablosunu yönetiyor. Diğer tüm servisler (ospfd, bgpd, isisd) öğrendikleri rota bilgilerini zebra'ya bildiriyor, zebra bunları Linux kernel'in routing tablosuna yazıyor. Zebra olmadan diğer servisler kernel ile konuşamıyor. Manuel olarak `ip route 192.168.1.0/24 10.0.0.1` yazıldığında, işletim sistemi çekirdeğine (Kernel) doğrudan emir verirsin. Tek tek `ip route` yazmak yerine; Zebra, protokollerden gelen dinamik bilgileri kullanarak o `ip route` komutlarını saniyeler içinde ve sürekli güncelleyerek otomatik olarak takip eder ve arka planda çalıştırır. Zebra bu durumu otomatik hale getirir;
 
 - Haber Toplama: BGP veya OSPF gibi protokoller, komşu cihazlardan _"Şu ağ bende var!"_ bilgisini alır.
-- Karar Verme: Zebra bu bilgileri toplar. Eğer aynı yere giden iki yol varsa, en iyisini seçer.
+- Karar Verme: Zebra bu bilgileri   toplar. Eğer aynı yere giden iki yol varsa, en iyisini seçer.
 - Uygulama: Zebra, seçtiği en iyi rotayı senin yerine otomatik olarak işletim sisteminin yönlendirme tablosuna (Kernel/FIB) yazar.
 
-**Quagga** ise FRR'nin eski hali. Artık aktif geliştirilmiyor. FRR, Quagga'dan fork edildi ve devam etti. Proje dökümanında _"zebra veya quagga"_ diyor çünkü ikisi de aynı işi yapıyor, sadece biri eski biri yeni.
+**Quagga** ise FRR'nin eski hali. Artık aktif olarak geliştirilmiyor. FRR, Quagga'dan fork edildi ve devam etti. Proje dökümanında _"zebra veya quagga"_'dan bahsediyor çünkü ikisi de aynı işi yapıyor, sadece biri eski diğeri yeni.
 
 **IS-IS** ve isisd ise IS-IS = Intermediate System to Intermediate System. OSPF gibi bir iç routing protokolü. Aynı AS (autonomous system) içinde router'ların birbirini keşfetmesi için kullanılıyor. IS-IS büyük telekom ağlarında tercih ediliyor daha ölçeklenebilir ve IP'den bağımsız çalışıyor. OSPF ise kurumsal ağlarda daha yaygın. OSPF daha çok kurumsal ağlarda (ofisler, kampüsler) popülerken; IS-IS, servis sağlayıcı (Türk Telekom, Vodafone vb.) ve devasa veri merkezi ağlarında daha çok tercih edilir çünkü genişlemesi biraz daha esnektir. İkisi de ağdaki en kısa yolu hesaplamak için Dijkstra algoritmasını kullanır.
+
 #### Gateway Nedir?
 Bir cihazdan `192.168.2.1`'e ping atmak istiyorsun. Cihaz önce şunu soruyor: _"Bu IP benim subnet'imde mi? Hayır ben `192.168.1.0/24` subnet'indeyim, hedef `192.168.2.1` subnet'inde. Bu benim subnet'imde değil."_ Bu durumda cihaz kendi subnet'i dışında ki bir hedefe paket göndermek istediğinde _"ben bunu bilemem, bir üst cihaza sorayım"_ diyor (bir üst cihaza soracak şekilde ayarlanmışsa). İşte o **üst cihaz** gateway oluyor. Yani gateway = _"bilmediğim her şeyi şuraya gönder"_ adresi. 
 
@@ -402,13 +415,13 @@ VPCS-2: 192.168.2.1/24
 
 Ağ arayüzlerini bu şekilde ayarladıktan sonra `VPCS-1`'den `VPCS-2` cihazına `ping 192.168.2.1` şeklinde `ping` atılmaya çalışıldığında başarız olunduğu görülebilir. `VPCS-1` cihazı `192.168.2.1` adresini `192.168.1.0` subnet'inde doğal olarak bulamadığından (farklı subnet'lere ait olmalarından) bu paketin üst bir cihaza (gateway'e) yönlendirilmesi gerek. Bunun için `VPCS-1`'de;
 
-```
+```bash
 ip route add default via 192.168.1.254
 ```
 
 aynı şekilde `VPCS-2` cihazından da `192.168.1.1` adresine ping atılmak istenebilir bu yüzden benzer yönlendirme yapılandırılması `VPCS-2`'de yine şu şekilde yapılabilir;
 
-```
+```bash
 ip route add default via 192.168.2.254
 ```
 
@@ -433,13 +446,13 @@ ip route add default via 192.168.2.254
 
 `ip route add default via 192.168.1.254` komutuyla mevcut subnet'de adresi bulunamayan cihazın iletilmesi gereken paketlerini `192.168.1.254` IP adresine sahip cihaz aracılığıyla yönlendir diyoruz. Yine `ping` atmayı test edersek yine başarız olunduğu gözlemlenebilir. çünkü _Router-1_ cihazı da aynı şekilde yönlendirme yapması gerekli çünkü ona gelen bu yabancı paketlerin nereye ve nasıl yönlendirilmesi gerektiğini o da bilmiyor ona söylenmedi/yapılandırılmadı. Router-1'de buna mukabil olarak bu yabancı paketleri ona komşu olan diğer router'a yani _Router-2_'ye yönlendirmeli. Bu yüzden Router-1 cihazında bu komut uygulanabilir;
 
-```
+```bash
 ip route add 192.168.2.0/24 via 10.0.0.2
 ```
 
 kısacasi bu _192.168.2.0/24'e gitmek istersen Router-2'den geç_ diyor. Ayrıca aynı yapılandırmayı Router-2'de de yapmalıyız çünkü Router-2'den de Router-1'e bir geri dönüş **_respond_** paketleri gönderilecek. Bu yüzden Router-2'de benzer olarak;
 
-```
+```bash
 ip route add 192.168.1.0/24 via 10.0.0.1
 ```
 
@@ -545,7 +558,7 @@ Bunun için;
 
 Router-1;
 
-```
+```sh
 vtysh
 configure terminal
 router ospf
@@ -558,7 +571,7 @@ write
 
 Router-2 (ABR olan cihaz);
 
-```
+```sh
 vtysh
 configure terminal
 router ospf
@@ -571,7 +584,7 @@ write
 
 Router-3;
 
-```
+```sh
 vtysh
 configure terminal
 router ospf
@@ -584,11 +597,11 @@ write
 
 Yapılandırmalar yapıldıktan sonra uç cihazlara ping gönderimini deneyin. Ardından Router-1 ve Router-3 cihazlarının kaç tane Router kaydı olduğunu görmek için Router yazılımındayken (vtysh'dayken);
 
-```
+```sh
 show ip ospf database
 ```
 veya
-```
+```sh
 show ip ospf database router
 ```
 
@@ -596,9 +609,9 @@ show ip ospf database router
 
 #### Wireshark'ı GNS3 ile kullanma ve buna mütekakiben ağ trafiğini izleme
 
-Herhangi bir topolojide ki ağ trafiğini izleyebilmek için ana makineye `wireshark` paketi kurulmalıdır. Kurulum sırasında `non-root users can capture packets` sorusu çıkacak — buna `Yes` deyin);
+Herhangi bir topolojide ki ağ trafiğini izleyebilmek için ana makineye `wireshark` paketi kurulmalıdır. Kurulum sırasında `non-root users can capture packets` sorusu çıkacak — buna `Yes` deyin;
 
-```
+```sh
 sudo apt install wireshark
 ```
 
@@ -608,7 +621,7 @@ Kurulum tamamlandıktan sonra GNS3'de ki bir topolojide iki cihaz arasinda ki ka
 
 İzin sorununu çözmek için ana makine terminalinde;
 
-```
+```sh
 sudo usermod -aG wireshark $USER
 ```
 

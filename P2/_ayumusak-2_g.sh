@@ -1,5 +1,6 @@
+#!/bin/sh
 # First, we add underlay IP address for this router to `eth1` interface
-ip addr add 192.168.2.254/24 dev eth1
+ip addr add 192.168.78.254/24 dev eth1
 
 # Also we should add other underlay IP address for the transmission with other router that should be share same subnet with the other router in that reason we can add to `eth0` interface;
 ip addr add 10.0.0.2/30 dev eth0
