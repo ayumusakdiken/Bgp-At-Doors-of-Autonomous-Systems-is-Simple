@@ -46,6 +46,8 @@ def send_frame(dst_mac, src_mac, src_ip, dst_ip, src_port, dst_port, payload):
 	conn.send(package)  # Çerçeveyi gönderir
 	conn.close()  # Soketi kapatır
 
+	print(f"Frame sent: {len(package)} bytes")  # Gönderilen çerçevenin boyutunu yazdırır
+
 src_mac = b'\x00\x0a\x95\x9d\x68\x16'  # Kaynak MAC adresi
 dst_mac = b'\xff\xff\xff\xff\xff\xff'  #
 
@@ -63,3 +65,4 @@ flags = 0x02  # TCP bayrakları (SYN bayrağı), 0x02 = SYN, 0x10 = ACK, 0x18 = 
 payload = b'Hello, World!'  # Gönderilecek veri
 
 send_frame(dst_mac, src_mac, src_ip, dst_ip, src_port, dst_port, payload)  # Çerçeveyi gönderir
+
