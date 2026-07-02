@@ -283,7 +283,7 @@ Yani VTEP cihazı (FRR router'ımız) şunu yapıyor:
 Host-1 ve Host-2 hiç farkında değil onlar için sanki aynı switch'e bağlılar. Aradaki tüm Layer 3 işlemi onlardan gizli. Yani VXLAN Layer 2'yi taklit ediyor ancak gerçekte Layer 3 üzerinden taşıyor ama uç cihazlara Layer 2 gibi görünüyor. Daha detaylı olarak düşünecek olursak uç cihazdan gelen paketin Layer 2 frame'ini Layer 3 olarak kılıflandırıyor;
 
 <p align="center">
-  <img src="../Images/part2/vxlan-summery.jpg">
+  <img src="../Images/part2/vxlan-summery.jpg" style="width: 80%; height: auto;">
 </p>
 
 ```
@@ -416,7 +416,7 @@ ip link set vxlan10 up
 Şimdi bridge'i kuracağız. Bridge, host'tan (end devices) gelen trafiği VXLAN tüneline aktaran sanal bir switch gibi düşünülebilir. Bridge burada VTEP cihazina bağlı olan end device'ların trafiğini fizikselden (underlay) değilde VXLAN trafiğinden yani tünelinden (overlay) geçirmek için konfigüre edilmesi gereken bir ayardır.
 
 <p align="center">
-  <img src="../Images/part2/vtep-machine-vxlan-process-1.png" style="width: 40%; height: auto;">
+  <img src="../Images/part2/vtep-machine-vxlan-process-1.png" style="width: 30%; height: auto;">
 </p>
 
 Bridge, host'un ethernet trafiğini VXLAN tüneliyle buluşturuyor. Yani host normal ethernet paketi gönderiyor, bridge onu VXLAN'a yönlendiriyor. Host'un VXLAN'dan haberi yok. Host tamamen habersiz, sadece normal ethernet paketi gönderiyor. VTEP (router) her şeyi hallediyor. Host'un ilgilendiği tek şey paketin gönderilip gönderilemeyeceğidir. Tabii ki biz arkaplanda paketin gönderilebilmesi için arkaplan ayarları (overlay konfigürasyonları) yaptığımızdan paket gönderilecektir. Bunun mümkün kılanabilmesi için Router-1'de şu komutların uygulanması gerekli;
@@ -438,7 +438,7 @@ her bir komutu teker teker ele alacak olursak;
 `master` keyword'ü şunu demek: _"bu arayüzün sahibi br0 olsun."_ Yani `br0` bir switch gibi davranıyor ve hem `eth0` hem `vxlan10` onun portları oluyor. Veya bir boru veya köprü gibi düşünülürse bunların iki ucunun nereye bağlanması gerektiğinin belirtiliyor gibi düşünülebilir.
 
 <p align="center">
-  <img src="../Images/part2/vtep-machine-vxlan-process-2.png" style="width: 40%; height: auto;">
+  <img src="../Images/part2/vtep-machine-vxlan-process-2.png" style="width: 30%; height: auto;">
 </p>
 
 `br0` ortada duruyor ve ikisini birleştiriyor. Host'tan gelen trafik VXLAN tüneline, tünelden gelen trafik host'a akıyor. Şimdi Router-2'de de aynı komutları çalıştır;
