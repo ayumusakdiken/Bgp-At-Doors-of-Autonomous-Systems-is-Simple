@@ -48,8 +48,8 @@ def send_frame(dst_mac, src_mac, src_ip, dst_ip, src_port, dst_port, payload):
 
 	print(f"Frame sent: {len(package)} bytes")  # Gönderilen çerçevenin boyutunu yazdırır
 
-src_mac = b'\x00\x0a\x95\x9d\x68\x16'  # Kaynak MAC adresi
-dst_mac = b'\xff\xff\xff\xff\xff\xff'  #
+src_mac = b'ff:ff:ff:ff:ff:ff'  # Source MAC address
+dst_mac = b'ff:ff:ff:ff:ff:ff'  # Destination MAC address
 
 src_ip = '192.168.32.129'  # Kaynak IP adresi
 dst_ip = '192.168.32.130'  # Hedef IP adresi

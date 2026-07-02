@@ -1,8 +1,8 @@
 import socket # ağ iletişimi için soketler oluşturmak ve yönetmek için kullanılır.
 import binascii # veri dönüştürme ve bayt dizilerini okunabilir biçime çevirmek için kullanılır.
 
-src_mac = b'\x00\x0c\x29\x4f\x8e\x35'  # Source MAC address
-dst_mac = b'\xff\xff\xff\xff\xff\xff'  # Destination MAC address
+src_mac = b'ff:ff:ff:ff:ff:ff'  # Source MAC address
+dst_mac = b'ff:ff:ff:ff:ff:ff'  # Destination MAC address
 ether_type = b'0800'  # Ethernet type for IPv4
 #
 # 0800 : IPv4

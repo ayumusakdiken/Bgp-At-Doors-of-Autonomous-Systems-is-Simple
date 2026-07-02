@@ -42,8 +42,8 @@ def send_frame(dst_mac, src_mac, src_ip, dst_ip, payload):
 
 
 def main():
-	dst_mac = 'ff:ff:ff:ff:ff:ff'  # Hedef MAC adresi (broadcast)
-	src_mac = '00:0a:95:9d:68:16'  # Kaynak MAC adresi
+	src_mac = b'ff:ff:ff:ff:ff:ff'  # Source MAC address
+	dst_mac = b'ff:ff:ff:ff:ff:ff'  # Destination MAC address
 	src_ip = '192.168.1.100'  # Kaynak IP adresi
 	dst_ip = '192.168.1.1'  # Hedef IP adresi
 	payload = b'Hello, World!'  # Gönderilecek veri
