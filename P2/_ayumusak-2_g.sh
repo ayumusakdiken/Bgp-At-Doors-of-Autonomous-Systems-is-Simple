@@ -1,7 +1,4 @@
 #!/bin/sh
-# First, we add underlay IP address for this router to `eth1` interface
-ip addr add 192.168.78.254/24 dev eth1
-
 # Also we should add other underlay IP address for the transmission with other router that should be share same subnet with the other router in that reason we can add to `eth0` interface;
 ip addr add 10.0.0.2/30 dev eth0
 
@@ -11,7 +8,7 @@ ip addr add 10.0.0.2/30 dev eth0
 ip link add vxlan10 type vxlan id 10 remote 10.0.0.1 local 10.0.0.2 dstport 4789 dev eth0
 
 # For multicast mode, we use `group` argument. It's a only difference from static mode. Because if each VTEP device listen the `239.1.1.1` group IP address, they will discover other remote VTEP devices automatically if they are listen that address too. Also 224.0.0.0 - 239.255.255.255 IP addresses are reserved group addresses for a special purposes. For example `239.x.x.x` prefix is a special for VXLAN.
-ip link add vxlan10 type vxlan id 10 group 239.1.1.1 dstport 4789 dev eth0
+# ip link add vxlan10 type vxlan id 10 group 239.1.1.1 dstport 4789 dev eth0
 
 # We have to activate the `vxlan10` interface because it could be `DOWN` state
 ip link set vxlan10 up
