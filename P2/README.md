@@ -522,13 +522,14 @@ IP adres aralıkları aslında belirli amaçlar için ayrılmış. IP adres uzay
 
 
 
-Multicast aralığı `224.0.0.0` - `239.255.255.255` bu aralıkta ki IP'ler hiçbir zaman tek bir cihaza atanmıyor. Sadece grup iletişimi için kullanılıyor. Bu aralık da kendi içinde bölünmüş:
+Multicast aralığı `224.0.0.0` - `239.255.255.255` bu aralıktaki (Class D) IP'ler hiçbir zaman tek bir cihaza atanmıyor. Sadece grup iletişimi için kullanılıyor. Bu aralık da kendi içinde bölünmüş:
 
 | Multicast IP Bölümleri | Anlamları
 | ------- | ------------- 
 | 224.0.0.0/24 | Yerel ağ multicast (OSPF, STP gibi protokoller)
 | 224.0.0.5  | OSPF router'ları
 | 224.0.0.6  | OSPF designated router'lar
+| 224.0.0.22  | IGMP Join/Leave
 | 239.0.0.0/8   | Yerel kullanım için ayrılmış (VXLAN gibi)
 
 `239.x.x.x` aralığı özellikle _"sen kendin kullanabilirsin"_ diye ayrılmış. VXLAN multicast grubu için buradan bir adres seçiyoruz.
