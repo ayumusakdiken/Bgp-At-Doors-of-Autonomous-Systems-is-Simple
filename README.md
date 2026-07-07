@@ -27,9 +27,6 @@ Yazımız da tıpkı proje dokümanında olduğu gibi bölüm bölüm ve her bö
     <img src="Images/part3.png" style="width: 45%; height: auto;"> 
 
   - ### [Python ile internet paketi göndermek](Apps/README.md)
-    
-    <img src="Images/part3.png" style="width: 45%; height: auto;"> 
-
 
   - ### [E-ticaret sitesine yolculuk](#proje-teslimi-ve-organizasyonu)
 
