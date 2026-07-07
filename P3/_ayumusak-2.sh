@@ -5,7 +5,7 @@ ip addr add 10.0.0.2/30 dev eth0
 ip addr add 1.1.1.2/32 dev lo
 
 # The OSPF configuration required to ensure that BGP neighbour relationships are established via the unique virtual IP addresses we previously assigned to the "lo" interface, rather than via physical interfaces;
-vtysh
+vtysh -c "
  # Switch vtysh from read mode to write mode
  configure terminal
  # Enter OSPF configuration mode
@@ -19,29 +19,31 @@ vtysh
  exit
  # Write the all configurations
  write
+ "
 
 # The BGP configurations required for Leaf to establish a dynamic relationship with RR;
-vtysh
+vtysh -c "
  configure terminal
  # Switch to the BGP configuration with AS number 1
  router bgp 1
  # The IP address of the neighbor to be connected to and the AS number it belongs to are specified;
  neighbor 1.1.1.1 remote-as 1
- # This means "Use my `lo` interface as the source IP when sending BGP messages to this neighbor (1.1.1.1)."
+ # This means Use my lo interface as the source IP when sending BGP messages to this neighbor (1.1.1.1).
  neighbor 1.1.1.1 update-source lo
- # In FRR, lines beginning with `!` are treated as comments and are not execute. It acts as a separator.
+ # In FRR, lines beginning with ! are treated as comments and are not execute. It acts as a separator.
  !
  # We’re moving on to another internal configuration shell to instruct BGP to carry not only IPv4 routes but also MAC information;
  address-family l2vpn evpn
-  # we're saying, "Share EVPN information with RR."
+  # we're saying, Share EVPN information with RR.
   neighbor 1.1.1.1 activate
-  # we're saying, "Advertise all VXLAN IDs defined on this device via BGP EVPN."
+  # we're saying, Advertise all VXLAN IDs defined on this device via BGP EVPN.
   advertise-all-vni
   # Exit from internal address-family configuration env
   exit
  exit
  exit
  write
+"
 
 # Create a virtual network interface named `vxlan10`, of type `vxlan`, with an ID of `10`, a destination port of 4789, and the `nolearning` parameter to prevent it from learning MAC addresses on the data plane;
 ip link add vxlan10 type vxlan id 10 local 1.1.1.2 nolearning dstport 4789
