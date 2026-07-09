@@ -1,14 +1,4 @@
 ## Konu Başlıkları
-- [VPLS + MPLS ve BGP EVPN VXLAN'nin çözdüğü sorun](#vpls--mpls-ve-bgp-evpn-vxlannin-çözdüğü-sorun)
-- [Part 2'de yapılan multicast ile flood yöntemi VPLS'mi demek?](#part-2de-yapılan-multicast-ile-flood-yöntemi-vplsmi-demek)
-- [Kontrol Düzlemi (Control Plane) ve Veri Düzlemi (Data Plane)](#kontrol-düzlemi-control-plane-ve-veri-düzlemi-data-plane)
-- [Protokol nedir? Bir protokol nasıl tasarlanır? Ne ile tasarlanır?](#protokol-nedir-bir-protokol-nasıl-tasarlanır-ne-ile-tasarlanır)
-  - [Makine bir paket geldiğinde _"BGP protokolü uygulanacaktır"_ işlemini nereden biliyor/anlıyor?](#makine-bir-paket-geldiğinde-bgp-protokolü-uygulanacaktır-işlemini-nereden-biliyoranlıyor)
-  - [Özetle bir protokolün işlenmesi için bir program, arkaplan programı, servis (daemon) tasarlanması mı gerekli? Örneğin C ile bir protokol tasarlanabilir mi? Paketin işlenmesi cihazın paketi servise yönlendirmesiyle oluyorsa paketlenmesi de aynı yerden mi oluyor?](#özetle-bir-protokolün-işlenmesi-için-bir-program-arkaplan-programı-servis-daemon-tasarlanması-mı-gerekli-örneğin-c-ile-bir-protokol-tasarlanabilir-mi-paketin-işlenmesi-cihazın-paketi-servise-yönlendirmesiyle-oluyorsa-paketlenmesi-de-aynı-yerden-mi-oluyor)
-  - [Soket programlama kütüphaneleri ağ kartını nasıl programlayabileceğinin hazır kaynakları mı oluyor? Bir C soket programlama kütüphanesi aslında kernel'in ağ kartına nasıl müdahele etmesi gerektiğinin ifadesi mi oluyor?](#soket-programlama-kütüphaneleri-ağ-kartını-nasıl-programlayabileceğinin-hazır-kaynakları-mı-oluyor-bir-c-soket-programlama-kütüphanesi-aslında-kernelin-ağ-kartına-nasıl-müdahele-etmesi-gerektiğinin-ifadesi-mi-oluyor)
-  - [Madem bir protokol cihazin ardında çalışan arkaplan servisi o halde TCP veya UDP için bir makine de _udpd_ veya _tcpd_ diye niye bir servis yok?](#madem-bir-protokol-cihazin-ardında-çalışan-arkaplan-servisi-o-halde-tcp-veya-udp-için-bir-makine-de-udpd-veya-tcpd-diye-niye-bir-servis-yok)
-- [BGP ve EVPN ayrı kavramlarsa VXLAN flood sorunu için mi geliştirilmişler yoksa bunlar genel bir teknik ama bu sorunu da çözebilecek mahiyette teknikler mi? Flood sorunu olmadan evvel bu teknik veya kavramlar var mıydı? Yoksa flood sorunu üzerine geliştirilmiş teknikler mi?](#bgp-ve-evpn-ayrı-kavramlarsa-vxlan-flood-sorunu-için-mi-geliştirilmişler-yoksa-bunlar-genel-bir-teknik-ama-bu-sorunu-da-çözebilecek-mahiyette-teknikler-mi-flood-sorunu-olmadan-evvel-bu-teknik-veya-kavramlar-var-mıydı-yoksa-flood-sorunu-üzerine-geliştirilmiş-teknikler-mi)
-- [RR/Spine/Controller cihazının ağda ki tüm Leaf'e bağlı host'ların MAC adreslerini öğrenme sorumluluğu/rolü flooding yöntemine nazaran tek bir merkeze yüklemek yine performams kaybı oluşturmaz mı?](#rrspinecontroller-cihazının-ağda-ki-tüm-leafe-bağlı-hostların-mac-adreslerini-öğrenme-sorumluluğurolü-flooding-yöntemine-nazaran-tek-bir-merkeze-yüklemek-yine-performams-kaybı-oluşturmaz-mı)
 - [Statik komşuluk ilişkili BGP EVPN ile VXLAN topoloji egzersizi örneği](#statik-komşuluk-ilişkili-bgp-evpn-ile-vxlan-topoloji-egzersizi-örneği)
   - [`lo` nedir? Neden `lo` sanal arayüzünü kullanıyoruz? `lo` yerine yeni bir sanal ağ arayüzü oluşturup Overlay'i (BGP komşuluk ilişkilerini) neden bunun üzerine kurmadık? Neden `/32` notasyonu kullanıldı?](#lo-nedir-neden-lo-sanal-arayüzünü-kullanıyoruz-lo-yerine-yeni-bir-sanal-ağ-arayüzü-oluşturup-overlayi-bgp-komşuluk-ilişkilerini-neden-bunun-üzerine-kurmadık-neden-32-notasyonu-kullanıldı)
   - [OSPF, `/32` notasyonlu diğer IP adreslerini nasıl buluyor? `/32` notasyonunun mantıksal olarak madem network adresi, subnet'i ve broadcast adresi yok yalnızca tek bir IP olarak var, o halde diğer adresleri nasıl buluyor?](#ospf-32-notasyonlu-diğer-ip-adreslerini-nasıl-buluyor-32-notasyonunun-mantıksal-olarak-madem-network-adresi-subneti-ve-broadcast-adresi-yok-yalnızca-tek-bir-ip-olarak-var-o-halde-diğer-adresleri-nasıl-buluyor)
@@ -20,6 +10,16 @@
   - [Spesifik olarak _"belirli bir VNI değerini duyur"_ diyemez miyiz? Örneğin ağ yapım da iki VNI'im var `10` ve `20` olarak _"sadece 10'u duyur"_ diyemiyor muyum?](#spesifik-olarak-belirli-bir-vni-değerini-duyur-diyemez-miyiz-örneğin-ağ-yapım-da-iki-vniim-var-10-ve-20-olarak-sadece-10u-duyur-diyemiyor-muyum)
   - [FRR'da yapılan tüm konfigürasyon ayarlarını görmek ve `!` işaretinin anlamı](#frrda-yapılan-tüm-konfigürasyon-ayarlarını-görmek-ve--işaretinin-anlamı)
 - [iBGP, eBGP ve iBGP ile OSPF arasında ki fark](#ibgp-ebgp-ve-ibgp-ile-ospf-arasında-ki-fark)
+- [VPLS + MPLS ve BGP EVPN VXLAN'nin çözdüğü sorun](#vpls--mpls-ve-bgp-evpn-vxlannin-çözdüğü-sorun)
+- [Part 2'de yapılan multicast ile flood yöntemi VPLS'mi demek?](#part-2de-yapılan-multicast-ile-flood-yöntemi-vplsmi-demek)
+- [Kontrol Düzlemi (Control Plane) ve Veri Düzlemi (Data Plane)](#kontrol-düzlemi-control-plane-ve-veri-düzlemi-data-plane)
+- [Protokol nedir? Bir protokol nasıl tasarlanır? Ne ile tasarlanır?](#protokol-nedir-bir-protokol-nasıl-tasarlanır-ne-ile-tasarlanır)
+  - [Makine bir paket geldiğinde _"BGP protokolü uygulanacaktır"_ işlemini nereden biliyor/anlıyor?](#makine-bir-paket-geldiğinde-bgp-protokolü-uygulanacaktır-işlemini-nereden-biliyoranlıyor)
+  - [Özetle bir protokolün işlenmesi için bir program, arkaplan programı, servis (daemon) tasarlanması mı gerekli? Örneğin C ile bir protokol tasarlanabilir mi? Paketin işlenmesi cihazın paketi servise yönlendirmesiyle oluyorsa paketlenmesi de aynı yerden mi oluyor?](#özetle-bir-protokolün-işlenmesi-için-bir-program-arkaplan-programı-servis-daemon-tasarlanması-mı-gerekli-örneğin-c-ile-bir-protokol-tasarlanabilir-mi-paketin-işlenmesi-cihazın-paketi-servise-yönlendirmesiyle-oluyorsa-paketlenmesi-de-aynı-yerden-mi-oluyor)
+  - [Soket programlama kütüphaneleri ağ kartını nasıl programlayabileceğinin hazır kaynakları mı oluyor? Bir C soket programlama kütüphanesi aslında kernel'in ağ kartına nasıl müdahele etmesi gerektiğinin ifadesi mi oluyor?](#soket-programlama-kütüphaneleri-ağ-kartını-nasıl-programlayabileceğinin-hazır-kaynakları-mı-oluyor-bir-c-soket-programlama-kütüphanesi-aslında-kernelin-ağ-kartına-nasıl-müdahele-etmesi-gerektiğinin-ifadesi-mi-oluyor)
+  - [Madem bir protokol cihazin ardında çalışan arkaplan servisi o halde TCP veya UDP için bir makine de _udpd_ veya _tcpd_ diye niye bir servis yok?](#madem-bir-protokol-cihazin-ardında-çalışan-arkaplan-servisi-o-halde-tcp-veya-udp-için-bir-makine-de-udpd-veya-tcpd-diye-niye-bir-servis-yok)
+- [BGP ve EVPN ayrı kavramlarsa VXLAN flood sorunu için mi geliştirilmişler yoksa bunlar genel bir teknik ama bu sorunu da çözebilecek mahiyette teknikler mi? Flood sorunu olmadan evvel bu teknik veya kavramlar var mıydı? Yoksa flood sorunu üzerine geliştirilmiş teknikler mi?](#bgp-ve-evpn-ayrı-kavramlarsa-vxlan-flood-sorunu-için-mi-geliştirilmişler-yoksa-bunlar-genel-bir-teknik-ama-bu-sorunu-da-çözebilecek-mahiyette-teknikler-mi-flood-sorunu-olmadan-evvel-bu-teknik-veya-kavramlar-var-mıydı-yoksa-flood-sorunu-üzerine-geliştirilmiş-teknikler-mi)
+- [RR/Spine/Controller cihazının ağda ki tüm Leaf'e bağlı host'ların MAC adreslerini öğrenme sorumluluğu/rolü flooding yöntemine nazaran tek bir merkeze yüklemek yine performams kaybı oluşturmaz mı?](#rrspinecontroller-cihazının-ağda-ki-tüm-leafe-bağlı-hostların-mac-adreslerini-öğrenme-sorumluluğurolü-flooding-yöntemine-nazaran-tek-bir-merkeze-yüklemek-yine-performams-kaybı-oluşturmaz-mı)
 - [PDF'de belirtilen _"dynamic relationship"_ ifadesi ve _"IP atamadan MAC adresini keşfetme"_ vurguları](#pdfde-belirtilen-dynamic-relationship-ifadesi-ve-ip-atamadan-mac-adresini-keşfetme-vurguları)
 - [BGP EVPN tablosunda keşfedilmiş MAC adreslerinin bir süre sonra tablodan gitmesi üzerine](#bgp-evpn-tablosunda-keşfedilmiş-mac-adreslerinin-bir-süre-sonra-tablodan-gitmesi-üzerine)
   - [BGP EVPN neden bridge tablosuna bağımlı?](#bgp-evpn-neden-bridge-tablosuna-bağımlı)
@@ -35,204 +35,6 @@
 
 
 ## Part 3
-
-### VPLS + MPLS ve BGP EVPN VXLAN'nin çözdüğü sorun
-Veri merkezlerinin yaygınlaşmadığı zamanlarda telekomünikasyon ağlarında **VPLS + MPLS** teknikleri kullanılıyordu. VPLS + MPLS, VXLAN'nın alternatifi olarak düşünülebilir. Farkları MPLS'in ağda uygulanabilmesi için özel donanım gerektirmesidir (**PE: Provider Edge Device** (VPLS + MPLS'li ağlarda ki literatürde VTEP yerine bu kullanılıyor)); çünkü IP paketinin içeriğine hiç dokunmayıp sadece paketin dışına MPLS etiketi konuluyor ve router yalnızca bu etikete bakıp ona göre yönlendirme yapıyor. Bu da tüm ağda ki cihazların MPLS etiketini anlayabileceği donanıma sahip olması ve bu cihazlara MPLS konfigürasyonu uygulanması demek. Yani veri düzlemin de MPLS, paketleri etiketleyen ve taşıyan bir taşıyıcıdır. Ancak tek başına bu teknik farklı lokasyonları aynıymış gibi yapamadığından **VPLS**, MPLS'e (VPLS zaten MPLS üzerinde çalışan bir servis) tıpkı VXLAN'ın yaptığı gibi farklı lokasyonları birbirlerine sanal bir ortam da bağlayarak aynı ortamdaymış havası verme davranışını sağlıyordu ancak bunu flood methoduyla yapıyordu. Yani hedef MAC adresini öğrenebilmek için tüm ağa duyuru yapmak (BUM trafiği). Telekom ağlarda kullanılan bu method veri merkezleri içinde de uyarlanmaya çalışıldı ancak bu yöntem veri merkezlerinin büyümesi ve yaygınlaşmasıyla ağa performanssal kayıp oluşturmaya başladı. Bu yüzden çözüm olarak MAC adreslerinin öğrenilmesinin farklı bir tekniği ve kombinasyonu meydana getirildi. **BGP EVPN + MPLS.** Ağ da paketler MPLS ile yine etiketleniyor ve taşınıyor ancak hedefin MAC adresi artık daha kontrollü şekilde BGP ile öğreniliyor. **BGP EVPN + VXLAN** ise aynısının alternatifidir. Paketler etiketlenmiyor bunun yerine kapsülleniyor ve özel donanım gerektirmiyor (Standart IP cihazları ile çalışabilir). Böylece ağ da özel ve pahalı donanım gerektirmeden IP cihazları ile ucuz biçim de veri merkezi ağ yapısı oluşturulabiliyor. Peki neden halen telekom ağlarda BGP EVPN + MPLS kullanılıyor? Eğer bir servis sağlayıcıysan (Türk Telekom, Vodafone vb.) zaten halihazırda devasa bir MPLS donanımlı ağın vardır. Yeni bir teknoloji olan VXLAN'a geçmek istediğinde tüm altyapıyı (IP Underlay olarak) değiştirmek yerine, sadece uçtaki router'lara _"Artık VPLS gibi flooding yapmayın, EVPN gibi akıllıca BGP konuşun ama veriyi yine bildiğimiz MPLS etiketleriyle taşıyın"_ dersin.
-
-Özetle:
- - **VPLS + MPLS:** Eski nesil, flooding (su baskını) yapan, hantal yapı.
- - **EVPN + MPLS:** Yeni nesil, akıllı (BGP), performanslı yapı (Genelde WAN'da).
- - **EVPN + VXLAN:** Yeni nesil, akıllı, standart IP cihazlarla çalışan yapı (Genelde Data Center'da).
-
-Part 2'de uygulanan dinamik multicast modu ile oluşturulmuş bir VXLAN ağı, statik mod (unicast) ile oluşturulmuş bir VXLAN ağa nazaran daha performanslı çalışır. Ancak multicast VXLAN'ın da bir limiti vardır. VTEP cihazlarının fazlalaşması, (örneğin 100 veya 1000 VTEP) flood methodu ile MAC adresi bilgisi öğrenmeye çalışan bütün VTEP cihazlarını yorar. Çünkü tek bir MAC adresi bilgisini temin etmek için bütün ağda ki cihazlara bağırılma durumu olmaktadır. Bu da doğal olarak az VTEP cihazı bulunduran bir ağa nazaran performans kaybı yaşatır. Ortaya çıkan bu soruna çözüm olarak BGP EVPN tekniği meydana getirilmiştir. Kabaca VTEP cihazları MAC adres bilgisi öğrenmek için multicast grubunda ki bütün cihazlara bunu sormak yerine artık VTEP'e cihazın MAC adresinin hangi VTEP'in arkasında olduğunu söyleyen omurga cihazı ağa konuluyor. Bu cihaza **Spine/RR(Route Reflector)/Controller** deniyor. Tüm VTEP'ler bu omurga cihaza bağlanılıyor ve artık VTEP'ler (veya diğer bir adıyla **Leafs**) MAC adres bilgilerini bu omurga cihazdan alıyorlar. Omurga cihaz öğrendiği her bir MAC adresini ona baglo olan her bir leaf'e gonderiyor. Bu haberleşme işleminin protokolü **BGP EVPN** ile sağlanıyor. Özetle veri merkezlerinde şu sorun var: Farklı fiziksel lokasyonlardaki sunucular aynı Layer 2 ağdaymış gibi davranmalı. Bunu çözmek için geleneksel flood yöntemi hantal. Part 3, Part 2'nin devamı niteliğinde bir temaya sahip. Statik veya dinamik mod şeklinde ayarlanmayacak VXLAN yapılı bir ağ için BGP EVPN tekniği kullanan bir mimari kurgulanması gerekiyor. Ayrıca proje dökümanında MPLS kullanmadan demesinin sebebinin ilki MPLS icin özel donanıma ve yazılıma ihtiyaç olmasıdır. ikincisi ise bu kombinasyonun (BGP EVPN + VXLAN) veri merkezlerinde kullanılması ve yeni nesil olması ve özel donanım gerektirmeden (MPLS gibi) standart IP cihazlarında çalışmasını tanıtmaktır. Veri merkezlerinde ki bu altyapısal yenilik part 3 konsepti içinde tanıtılmayı amaçlıyor.
-### Part 2'de yapılan multicast ile flood yöntemi VPLS'mi demek?
-Multicast modunda bir VXLAN yapısı kurulduğu zaman VPLS ile VXLAN yapısı oluşturmuş olunmaz. Biz veri düzlemi seviyesinde multicast modu aracılığıyla ve flood methoduyla MAC adreslerini elde etme mekaniğini kullanmış oluyoruz VPLS kullanmış olmuyoruz. VPLS tamamen farklı bir teknikdir. Ancak hem VPLS hem de VXLAN'in temel amacı aynıdır: Farklı yerlerdeki Layer 2 (Lokal) ağları, arada bir Layer 3 ağ olmasına rağmen sanki aynı switch'e bağlıymış gibi birbirine bağlamak. Her iki teknik de statik modlarında bir paketin nereye gideceğini bilmediğinde (BUM trafik: Broadcast, Unknown Unicast, Multicast) paketi her yere kopyalar (Flood). Paket geri dönerken de _"bu MAC adresi şu uçtaymış"_ diyerek öğrenir (Learn);
-
-**VXLAN**, standart bir IP ağı (Underlay) üzerinde çalışır. Paketleri IP/UDP içine sarar.
-- **Nasıl Taşır?:** Klasik bir IP yönlendirmesi (OSPF, ISIS, BGP hatta Static Route) olan her yerde VXLAN çalıştırabilirsin.
-- **Multicast'in Rolü:** VXLAN'de multicast, sadece ortak alan görevi görür. Ağdaki bir VTEP (VXLAN ucu), bilmediği bir MAC adresini ararken paketi multicast grubuna gönderir. O gruba üye olan diğer VTEP'ler paketi alır. Yani multicast, VXLAN'in içindeki trafiği dağıtmak için kullandığı bir araçtır, teknolojinin kendisi değildir.
-
-**VPLS** ise bir MPLS (Multiprotocol Label Switching) teknolojisidir. Paketleri IP içine değil, MPLS etiketleri (labels) içine sarar.
-- **Nasıl Taşır?:** VPLS çalıştırabilmek için ağındaki tüm cihazların MPLS desteklemesi, arkada BGP gibi protokollerle **Pseudowire (sanal kablo)** tünelleri kurması gerekir.
-- **Flood Mekanizması:** VPLS'te multicast grubu kullanılmaz. Bunun yerine uç cihazlar (PE - Provider Edge) arasında tam örgü (Full-Mesh) sanal kablolar kurulur. Bir yayın (broadcast) geldiğinde, cihaz bu paketi tüm sanal kablolara tek tek kopyalayarak gönderir (Head-end Replication).
-### Kontrol Düzlemi (Control Plane) ve Veri Düzlemi (Data Plane)
-Bir ağın işleyişi özetle iki ayrı katmanda/düzlemde ele alınabilir; kontrol ve veri. Bir ağ kendi yapısının kontrolünü yönetilebilir ve yönetilemeyen cihazlar üzerinden sağlar. Aynı şekilde yönetilebilir bir ağ cihazı aynı zaman da veri iletim için de kullanılabilir. Her yönetilebilir ağ cihazı iki düzleme sahiptir; kontrol ve veri düzlemi ve buna müteakip bu düzlemlerde kontrol ve veri trafikleri oluşur.
-
-Bir ağ da **yönetilemeyen** ve **yönetilebilen** olarak iki cihaz çeşidi bulunabilir;
-
-- **Unmanaged Switch'ler:** Sadece veri düzlemine sahiptir denilebilir. İçinde bir işletim sistemi veya karar mekanizması yoktur bu yüzden gelen sinyali basit bir tabloya göre iletir.
-- **Yönetilebilir Cihazlar (Router, Switch):** Kesinlikle her iki düzleme de sahiptir. Çünkü bu cihazların bir CPU'su, bir işletim sistemi (IOS, FRR, Junos vb.) ve bir yönetim arayüzü (SSH, Konsol) vardır. Bu yönetimsel süreçlerin tamamı Kontrol Düzlemi'nde döner.
-
-**Kontrol düzlemi/tabanında** işlem yapan cihazlar; _"en kısa rota hesaplaması, MAC adres bilgisini öğrenme, hangi cihazların ağdan düştüğünü veya ağa katıldığını"_ vb. işlemleri hesapladıklarından CPU gücünden yararlanırlar. MAC, komşuluk ilişkileri, route tablosu vb. oluşturup hazırlar ve güncellerler.
-
-**Veri düzlemi/tabanında** işlemler ise sadece **kas gücüdür**. Kontrol düzlemi (CPU) kararı verdikten sonra bir tablo oluşturur ve bu tabloyu **ASIC (Application-Specific Integrated Circuit)** denilen özel çiplere kopyalar. ASIC, sadece tek bir işi (paket yönlendirme) yapmak için üretilmiş süper hızlı bir yongadır. Mantık yürütmez, sadece tabloya bakar: _"Paket A portundan geldi, hedefi B IP'si, o zaman C port"_ gibi. Sadece paketleri iletir. Gelen paketin başlığına bakar, tabloda eşleşen yere gönderir. Hiçbir _"hesaplama"_ veya _"karar verme"_ süreciyle ilgilenmez. ASIC'ler donanım seviyesinde çalıştığı için gecikme (latency) neredeyse sıfırdır. Bu sayede veriyi saniyeler içinde iletebilirler.
-
-OSPF, BGP vb. protokol ve teknikler ile kontrol düzleminde işlem yapan cihazların iletişimi otomatikleştirilip ağ dinamik (otomatizasyon) hale getirilebilir. Bu düzlemere takiben bir ağ da iki tip trafik olur bunlar; **kontrol** ve **veri trafiğidir**;
-
-**Kontrol trafiği**, kontrol düzleminde işlem yapan cihazlar arasında ki teyitlerdir. Bu, ağ üzerinden diğer cihazlara kontrol paketleri iletilerek kontrol edilir örneğin;
-
-- **ARP (Address Resolution Protocol):** Bir cihazın IP adresini bilip MAC adresini bunun üzerinden öğrenmeye çalıştığı ve sorduğu _"Kimde bu IP var?"_ sorusu bir kontrol trafiğidir.
-- **Keepalive (Hayatta mısın?) Paketleri:** BGP komşuları (mesela bir Leaf ile RR) birbirine sürekli minik paketler atar. _"Ben buradayım, hala çalışıyorum"_ derler. Eğer bu kontrol paketleri kesilirse, cihazlar o yolun çöktüğünü anlar ve trafiği keser. Aynı şekilde OSPF'de komşuları ile buna benzer biçimde işler. 
-
-**Veri trafiği** ise, veri düzleminde işlem yapan cihazlar arasında ki doğrudan veri iletimleridir. Asıl kullanıcı verisinin (YouTube videosu, dosya transferi, ping paketi) geçtiği yerdir. Donanım (ASIC çipler) üzerinde çalışır. Kontrol düzlemi _"adres ve rote şu dur"_ der, veri düzlemi ise paketi oraya taşır. Bu ayrımın olmasının sebebi örneğin; eğer bir cihazda kontrol düzlemi (CPU) çok meşgul olursa (örneğin çok karmaşık BGP hesaplamaları yapıyorsa), veri düzlemi (ASIC) bundan etkilenmez. Yani cihaz yeni yollar hesaplarken, mevcut paketleri iletmeye tam hızda devam edebilir. Bu da bir cihazda iki farklı iş birbirlerini etkilemeden yapılabilir anlamına gelip bir cihaz farkli rollerde işler yapabilir anlamına gelir.
-
-Özetle bir ağda ki işleyiş iki düzlem de oluyor; biri kontrol diğeri veri. Kontrol düzleminde ki ağ cihazları; MAC ve route tablosu, en kısa rota hesaplama vb. karmaşık hesaplamaların yapıldığı düzlemdir. Aynı zaman da buna ARP, OSPF ve BGP komşuluk iletişimi gibi kontrol trafiği de dahil edilebilir. Veri düzleminde ise kontrol trafiğinin hazırladğı en kısa rota bilgisi, MAC ve route gibi tablolardan yola çıkarak sadece hedefe verinin taşınması düzlemidir. Bu yüzden kontrol düzlemi işlemleri için CPU, veri düzleminde ki işlemler için ASIC donanım kullanılır. Ayrıca bu iki bileşen genelde tek bir cihaz da bulunduğundan bir ağ cihazı aslında iki düzlemde çalışabilir potansiyeldedir ve zaten çalışır. Örnek olarak Wireshark'da görülen ARP isteği _"Who has 192.168.1.1? Tell 192.168.1.2"_ mesajları tam olarak kontrol düzlemi trafiğinin paketleridir. Ping atmadan önce cihaz _"bu IP'nin MAC adresi nedir?"_ diye soruyor — bu bir kontrol sorusu, veri taşımıyor. Cevabı öğrenince MAC tablosuna yazıyor, sonra gerçek veriyi gönderiyor.
-
-```
-ARP → "MAC adresin nedir?" → kontrol düzlemi
-ICMP ping → gerçek veri → veri düzlemi
-```
-
-BGP EVPN'in çözdüğü sorun da tam burada: Normal VXLAN'da VTEP bilinmeyen bir MAC için ARP flood yapıyor — tüm ağa _"bu MAC kimde?"_ diye bağırıyor. BGP EVPN ile ise bu bilgi zaten kontrol düzleminde önceden dağıtılmış — ARP flood'a gerek kalmıyor.
-
-### Protokol nedir? Bir protokol nasıl tasarlanır? Ne ile tasarlanır?
-
-Bir cihazda bir paket oluşturmak veya bir paketin çözümlenmesi işlemleri cihazin bunları yapabilecek mahiyette **programa/uygulamaya** sahip olmasını gerektirir. Bu program aslında paketin nasıl paketlenmesi ve işlenmesi gerektiğinin belirtimleridir. Yani aslında protokoldür. Bu yüzden bir programalama dili ile özel bir protokol tasarlamak mümkündür.
-
-#### Makine bir paket geldiğinde _"BGP protokolü uygulanacaktır"_ işlemini nereden biliyor/anlıyor?
-Bir makine (router veya switch), gelen paketin BGP olduğunu paketin içindeki katmanlı başlık (header) bilgilerine bakarak anlar. Bu süreç bir mektup zarfını açmaya benzetilebilir. Makine her katmanda bir sonra ki adımın ne olduğunu söyleyen bir "etiket" görür:
-
-1. **Katman 2 (Ethernet)** - _"İçeride ne var?"_ Kablo üzerinden gelen elektrik sinyalleri bitlere (0 ve 1) dönüşür. Makine önce en dıştaki Ethernet Başlığına bakar. Burada **"EtherType"** adı verilen 2 bytelık bir alan vardır. Eğer burada `0x0800` yazıyorsa, makine şunu anlar: _"Tamam, bu paketin içinde ki bir sonra ki katman IPv4 protokolüdür."_
-2. **Katman 3 (IP)** - _"Hangi ulaşım yolu?"_ Makine şimdi IP başlığını okur. IP başlığının içinde **"Protocol"** adında bir alan bulunur. Eğer burada `6` yazıyorsa, makine şunu anlar: _"Bu IP paketinin içinde TCP verisi taşınıyor."_
-3. **Katman 4 (TCP)** - _"Hangi uygulama?"_ Şimdi makine TCP başlığına odaklanır. TCP katmanında en kritik bilgi **Port** Numarasıdır. Eğer **"Destination Port" (Hedef Port)** kısmında `179` yazıyorsa, makine kesin olarak şunu söyler: _"Bu paket BGP protokolüne ait bir mesajdır!"_
-4. **Yazılıma Teslim (Uygulama Katmanı)** - Makine paketin BGP olduğunu anladığında, onu işletim sistemindeki (örneğin FRR, Cisco IOS, Junos) BGP servisine (daemon) yönlendirir. BGP servisi paketi açar ve içindeki **"Update", "Keepalive"** veya **"Open"** gibi mesajları okuyup işlemine başlar.
-
-EVPN durumunda ne oluyor? BGP EVPN kullanırken işler bir tık daha detaylanır. Makine paketin BGP (Port 179) olduğunu anladıktan sonra, BGP mesajının içine bakar. BGP'nin içinde **AFI (Address Family Identifier)** ve **SAFI (Subsequent AFI)** denilen belirteçler vardır:
-
-- **AFI 25:**  _"Ben L2VPN (Layer 2 VPN) bilgisi taşıyorum."_
-- **SAFI 70:** _"Ve bu bilgi özellikle EVPN formatındadır."_
-
-Makine bu kodları gördüğünde, gelen bilginin sıradan bir internet rotası olmadığını, senin VXLAN yapınla ilgili bir MAC adresi güncellemesi olduğunu anlar ve onu EVPN tablosuna işler. Özetle Makine;
-
-1. Ethernet başlığına bakar: _"İçeride IP mi var?"_ -> Evet.
-2. IP başlığına bakar: _"İçeride TCP mi var?"_ -> Evet.
-3. TCP başlığına bakar: _"Port 179 mu?"_ -> Evet.
-4. Karar: _"O zaman bu bir BGP paketidir, BGP protokol kurallarını uygula."_
-
-Eğer port `179` değil de `80` olsaydı, makine _"BGP protokolü uygulanacaktır"_ demez, _"Bu bir web trafiğidir (HTTP)"_ derdi. Yani her şey paketin üzerine basılmış bu standart **"etiketler"** (portlar ve protokol numaraları) üzerinde ve sayesinde yürür.
-
-#### Özetle bir protokolün işlenmesi için bir program, arkaplan programı, servis (daemon) tasarlanması mı gerekli? Örneğin C ile bir protokol tasarlanabilir mi? Paketin işlenmesi cihazın paketi servise yönlendirmesiyle oluyorsa paketlenmesi de aynı yerden mi oluyor?
-
-Bir protokol, özünde çalışan bir koddur. Eğer bir program (daemon/servis) yoksa, protokol sadece kağıt üzerinde bir taslak olarak kalır. C ile bir protokol tasarlanabilir mi? Evet. Hatta bugün kullandığın BGP (FRR veya Quagga gibi yazılımlar), OSPF, ve TCP/IP yığınlarının neredeyse tamamı C ile yazılmıştır. C ile bir protokol yazmak için şunları yaparsın:
-
-- **Struct (Yapı) Tanımlarsın:** Paketin başlıklarını (Header) C'deki `struct` yapılarıyla oluşturursun. Örneğin, BGP'nin **"Marker", "Length"** ve **"Type"** alanlarını temsil eden bir struct yazarsın.
-- **Socket Programming:** İşletim sisteminden **"Raw Socket"** açarak, paketi hiçbir işleme uğramadan ham bir şekilde ağ kartına göndermeyi veya oradan okumayı sağlarsın.
-- **Döngü (Event Loop):** Arka planda sürekli çalışan bir `while(1)` döngüsü kurarsın; bu döngü port `179`'u dinler, paket gelince onu senin yazdığın fonksiyonlara gönderir.
-
-Paketleme ve çözme aynı yerden mi olur? Evet, genellikle aynı Daemon (Servis) bu işin her iki ucundadır. Bu sürece ağ dünyasında encapsulation (Paketleme) ve decapsulation (Paketi Açma) denir.
-- **Paketleme (Giden Trafik):** Örneğin BGP servisin bir komşusuna _"Ben buradayım"_ (Keepalive) demek istiyor. Servis, C kodunda ilgili struct'ı doldurur, bellekte bir buffer oluşturur ve bunu ağ kartına (Kernel üzerinden) gönderir.
-- **Çözme (Gelen Trafik):** Karşıdan bir paket geldiğinde, cihaz (Kernel) port numarasına bakıp _"Bu BGP'ye ait"_ der ve paketi senin BGP servisine teslim eder. Servisin içinde ki kod, tekrar C struct yapısına dönüştürür ve içindeki mesajı okur.
-
-Neden _"Daemon/Servis"_ tasarlanmalı? Ağı sürekli izleyen ve onunla iletişimde olması gereken bir şeyin olması gereklidir. Bu yüzden daemon/servis şeklinde arkaplanda çalışacak bir program olarak tasarlanmalıdır.
-
-#### Soket programlama kütüphaneleri ağ kartını nasıl programlayabileceğinin hazır kaynakları mı oluyor? Bir C soket programlama kütüphanesi aslında kernel'in ağ kartına nasıl müdahele etmesi gerektiğinin ifadesi mi oluyor?
-
-C dilindeki soket programlama ve onun kütüphane kaynakları, kernel ile ağ kartı donanımının nasıl davranması gerektiğinin ifadesidir. Soket kütüphanesi bir **"Tercüman"dır.** Yazılan C kodu doğrudan ağ kartındaki (NIC) transistörleri yönetmez. Ağ kartı çok hızlıdır ve karmaşıktır; ona doğrudan müdahale etmek yerine, Kernel çevirmenlik yapar. Soket kütüphanesi (`sys/socket.h` gibi) sana şunları sağlar; _"Ağ kartı Intel mi, Realtek mi?"_ diye düşünülmeye gerek kalmaz. Sadece `socket()` fonksiyonunu çağırırsın. `send()` komutu verildiğinde, aslında Kernel'e şu denir örnek olarak: _"Benim elimde bir veri yapısı (struct) var. Bunu BGP protokol kurallarına göre paketle ve ağ kartı üzerinden dışarı fırlat."_
-
-Kernel ve ağ kartı ilişkisinde "müdahele" olarak ifade edilen şey aslinda **Sistem Çağrılarıdır;**
-
-- **Kod (User Space):** _"Soket aç, port 179'u dinle."_
-- **Soket Kütüphanesi:** Bu isteği işlemcinin anlayacağı bir "Interrupt" (yarıda kesme) sinyaline dönüştürür.
-- **Kernel (Kernel Space):** Bu sinyali alır, _"Tamam, kullanıcı BGP konuşmak istiyor"_ der. Kartın Driver'ına (Sürücü) talimat gönderir.
-- **Ağ Kartı (Hardware):** Driver'dan gelen veriyi alır ve fiziksel kabloya elektrik sinyali olarak bırakır.
-
-Protokol tasarlarken neyi programlıyoruz? Eğer sıfırdan bir protokol tasarlanıyorsa, aslında Kernel'e şunların nasıl yapılacağı tarif edilir:
-
-1. **Paketin Yapısı:** _"İlk 2 byte her zaman 'Mesaj Tipi' olsun."_ (Bu C `struct`ı şeklinde yazılmış olabilir).
-2. **Hata Kontrolü:** _"Eğer karşıdan 30 saniye boyunca 'Keepalive' gelmezse bağlantıyı kopar."_ (Bu `while` döngüsü olarak yazılmış olabilir).
-3. **Yönlendirme:** _"Eğer gelen pakette EVPN Type-2 yazıyorsa, içindeki MAC adresini al ve tablodaki şu satıra yaz."_ (`if-else` şeklinde yazılmış olabilir).
-
-#### Madem bir protokol cihazin ardında çalışan arkaplan servisi o halde TCP veya UDP için bir makine de _udpd_ veya _tcpd_ diye niye bir servis yok?
-
-TCP, UDP, BGP hepsi protokol ama farklı katmanlarda çalışıyorlar. OSI modeli hatırlanacak olursa;
-
-```
-Layer 7 → Uygulama (HTTP, BGP, OSPF)
-Layer 4 → Transport (TCP, UDP)
-Layer 3 → Ağ (IP)
-Layer 2 → Veri bağlantısı (Ethernet, MAC)
-Layer 1 → Fiziksel (kablo)
-```
-
-**TCP ve UDP** → **Layer 4'te** çalışıyor. Veriyi nasıl taşıyacağını belirliyor. **BGP → Layer 7'de** çalışıyor. Ama taşınmak için TCP kullanıyor yani BGP mesajları TCP paketlerinin içinde gidiyor.
-
-```
-BGP mesajı
-    ↓
-TCP paketine sarılıyor (port 179)
-    ↓
-IP paketine sarılıyor
-    ↓
-Ethernet frame'ine sarılıyor
-    ↓
-Fiziksel kablo
-```
-
-Yani BGP bir uygulama protokolü. Routing bilgilerini taşımak için tasarlanmış. TCP veya UDP ise bir taşıma protokolü. BGP'nin güvenli iletilmesi için kullanılıyor.
-
-### BGP ve EVPN ayrı kavramlarsa VXLAN flood sorunu için mi geliştirilmişler yoksa bunlar genel bir teknik ama bu sorunu da çözebilecek mahiyette teknikler mi? Flood sorunu olmadan evvel bu teknik veya kavramlar var mıydı? Yoksa flood sorunu üzerine geliştirilmiş teknikler mi?
-
-**BGP** vardı ve eski bir protokoldü; ancak **EVPN**, tam olarak **"flood"** (BUM trafiği) ve ölçeklenebilirlik sorunlarını çözmek için BGP'nin üzerine inşa edilmiş yeni bir **BGP "uzantısı" (extension)** olarak doğdu. AS'ler arası routing protokolü.
-
-**Klasik BGP (Border Gateway Protocol)**
-İnternetin ana protokolüdür. 1980'lerden beri var. İlk görevi sadece **Layer 3 (IP) rotalarını** taşımaktı. Yani _"X IP adresine gitmek için şu yolu izle"_ derdi. Başlangıçta BGP sadece şunu yapıyordu: _"Ben AS 1'im ve şu IPv4 adres bloklarına sahibim"_ diye diğer AS'lere duyurmak. İnternet bu BGP duyurularından oluşuyor. Bir internet servis sağlayıcısı da AS olduğuna göre diğer ISS'lerle iletişim için bu protokol kullanılıyor. Bir bilgisayar Google'a bağlanabiliyorsa bu BGP sayesindedir. Router'lar Google'ın IP bloğunun hangi AS'te olduğunu BGP'den öğreniyor. Yani **sıradan BGP = AS'ler arası IPv4 rota duyurusu**. İnternetin omurgası BGP. Dünyada yaklaşık 70.000'den fazla AS var ve hepsi BGP ile birbirine bağlı. Senin paketi Google'a ulaştıran yol boyunca onlarca AS geçiyor. BGP'yi OSPF'e benzetebiliriz ancak BGP'de rota hesaplama OSPF'ten tamamen farklı. **OSPF → en kısa yolu** hesaplıyor. Matematiksel, objektif. **BGP → politik (ticari) olarak en iyi yolu hesaplıyor** ama "en iyi" çok faktöre bağlı:
-
-```
-AS path uzunluğu  → kaç AS'ten geçiyor
-Local preference  → bu yolu ne kadar tercih ediyorum
-MED               → komşuya "benden şu yoldan gir" demek
-Community         → rota etiketleme
-Ticari ilişki     → transit mi, peer mi?
-```
-
-Gerçek hayatta bir paket en kısa fiziksel yoldan gitmeyebilir. Turkcell _"bu trafiği Frankfurt'taki ortağımdan geçireyim"_ diyebilir — fiziksel olarak daha uzun ama ticari olarak daha avantajlı. Bu yüzden bazen Türkiye'den Türkiye'ye giden bir paket Frankfurt veya Londra'dan dönüyor politik rota kararı. Örnegin Turkcell Google'a BGP ile bağlanmak istediğinde şunlar gerekiyor:
-
-1. **Fiziksel bağlantı** — önce fiziksel olarak bağlı olmaları lazım. Bu genellikle **IXP (Internet Exchange Point)** denilen noktalarda oluyor. İstanbul'da **TurkIX** böyle bir nokta — farklı AS'ler burada fiziksel olarak buluşuyor.
-2. **BGP yapılandırması**;
-
-```
-# Turkcell router'ında:
-router bgp 9121
-neighbor 195.x.x.x remote-as 15169  ← Google'ın IP'si ve AS'i
-```
-
-```
-# Google'ın router'ında da:
-router bgp 15169
-neighbor 81.x.x.x remote-as 9121  ← Turkcell'in IP'si ve AS'i
-```
-
-3. **Ticari anlaşma** — teknik kısım bu kadar basit aslında. Asıl mesele ticari anlaşma — kim kimin trafiğini taşıyacak, karşılığında ne ödeyecek. Pratikte bu bağlantıyı kurabilmek için fiziksel altyapı ve ticari anlaşma gerekiyor.
-
-**MP-BGP (Multi Protocol BGP)**
-BGP'yi özel kılan şey, **MP-BGP (Multi-Protocol BGP)** haline gelebilmesidir. Yani BGP'ye _"Sadece IP değil, başka bilgiler de taşı"_ diyebiliyoruz. Sıradan BGP önceden yalnızca tek protokol ile çalışabildiğinden yalnızca IP rota bilgilerini taşıyabiliyordu. Ancak MP-BGP ile BGP'nin taşıyabildiği adres bilgisi genişletildi. MP-BGP ile BGP artık **IPv6, VPN bilgisi, MAC adresleri** gibi farklı türde bilgileri de taşıyabiliyor. EVPN tam da bu esnekliği kullanıyor. Buna müteakip **EVPN MP-BGP'nin bir uzantısıdır.** Gerçek hayatta kullanım örnekleri:
-
-- İnternet servis sağlayıcıları **sıradan BGP** kullanıyor — _"ben şu IP bloklarına sahibim"_ duyurusu.
-- Büyük şirketler **L3 VPN için MP-BGP** kullanıyor — farklı şehirlerdeki ofisler arasında özel ağ.
-- Veri merkezleri **L2 EVPN için MP-BGP** kullanıyor — iç ağ yapısında kullanilan teknik bizim projede yaptığımız şey.
-
-**EVPN (Ethernet VPN)**
-**EVPN** ise çok daha genç bir tekniktir (2010'ların başı). VXLAN ve benzeri teknolojilerle birlikte, veri merkezleri devasa boyutlara ulaştığında ortaya çıkan "flood" sorununa bir çözüm olarak geliştirildi. Geleneksel Layer 2 ağlarda (VPLS gibi), bir cihazın nerede olduğunu öğrenmek için **"Flood and Learn" (sel gibi yayıl ve öğren)** kullanılıyordu. Bu da 1000'lerce cihazlık ağlara büyük yük oluşturuyordu. Ağ mühendisleri: _"Biz neden Layer 2 (MAC) bilgilerini de Layer 3 (IP) rotaları gibi önceden dağıtmıyoruz? Elimizde BGP gibi devasa verileri taşıyabilen sağlam bir protokol var, MAC adreslerini de onun içine paketleyip gönderelim."_ dendi. Klasik BGP normalde IP adreslerini (prefix) taşımak için tasarlanmıştı. EVPN (Ethernet VPN) ise BGP'ye yeni bir yetenek kazandırarak, BGP paketlerinin (Update paketleri) içerisinde MAC adreslerini (IP rota bilgilerini de) birer rota gibi taşımasını sağlayan bir aile **(Address Family)** eklentisidir. Yani sadece **EVPN + VXLAN** dendiği zaman kastedilen şey **BGP paketlerinde MAC adres bilgilerinin de barındırılmasıdır.** Bunu takiben aslında EVPN demek BGP demek ancak içerisinde klasik şekilde yalnızca IP rota bilgilerini içeren şekilde değil aynı zaman da MAC adres bilgilerini içerecek biçim de formlanmış bir **BGP formu = EVPN**. Kısaca :d BPG paketinin içinde MAC adresinin de olması ve taşınması durumuna EVPN deniliyor. Ayrıca bazı ağ topolojilerinin yapılarını ifade ederken sadece **EVPN + VXLAN** veya **EVPN + MPLS** gibi kavramlar kullanılabilir ve neden **BGP + VXLAN** değilde o şekilde kullandıldığı doğallıkla sorulabilir. Bir ağ topolojisinin yapısı hakkında açıklama yaparken _"BGP kullanıyorum"_ denilirse çok geniş — hangi adres ailesi, ne için? _"EVPN kullanıyorum"_ dersen spesifik — MAC adresleri için BGP uzantısı kullanıyorum. **BGP denilirse** → genel protokol, çok amaçlı ama **BGP EVPN denilirse** →  MAC adresi taşıyan spesifik yapılandırma. Network dünyasında kavramsal bir iç içelik durumu söz konusu olduğundan şu durumlar ortaya çıkabiliyor; Aynı şeye farklı isimler veriliyor (VTEP = PE = tunnel endpoint). Her üretici kendi terminolojisini ve literatürünü kullanıyor (Cisco vs Juniper vs Linux).
-
-Normal bir cihaz, diğer bir cihazın nerede olduğunu anlamak için trafiğin gelmesini bekler veya her yere sorar (Flooding). EVPN'de ise durum şöyledir:
-
-1. Bir router (VTEP/PE), kendisine bağlı bir bilgisayarın MAC adresini öğrendiği anda, bunu bir BGP Update paketine koyar.
-2. Bu paketin içine _"`A0:B1:C2` MAC adresi bende, bana ulaşmak için şu IP'ye gel"_ bilgisini yazar.
-3. **RR/Spine/Controller** cihazı bu bilgiyi alır ve tablosuna işler. Ardından bunu ona bağlı olan **client/leafs** cihazlarina dağıtır.
-4. Ağdaki diğer tüm cihazlar bu BGP paketini alır ve kendi tablolarına işler.
-
-Buna network literatüründe **Control-Plane Learning (Kontrol Düzlemi ile Öğrenme)** denir. Yani artık **"su baskını" (flooding)** yaparak öğrenmek zorunda değilsin; haberleşme başlamadan herkes kimin nerede olduğunu biliyor.
-
-**BGP EVPN kombinasyonu**
-EVPN aslında BGP'nin taşıdığı bir "yük" (payload) gibidir. BGP bir kamyonsa, EVPN o kamyonun içindeki özel bir kargo tipidir. 
-- **Flood Öncesi Durum:** Eskiden MAC adreslerini öğrenmek için paketin her yere gitmesi (flood) şarttı. Çünkü bir **"kontrol merkezi"** yoktu. 
-- **EVPN Sonrası Durum:** EVPN sayesinde artık bir VTEP, arkasına yeni bir cihaz takıldığında bunu bir BGP mesajı olarak paketler. Bu mesaja _"Type-2 Route" (MAC/IP Advertisement)_ denir. Diğer tüm VTEP'lere bu bilgiyi fısıldar. 
-**Sonuç:** Artık kimsenin **"flood"** yapmasına gerek kalmaz. Çünkü her VTEP'in elinde, ağda ki her bir MAC adresinin hangi VTEP'in arkasında olduğuna dair devasa bir _"telefon rehberi"_ (BGP tablosu) oluşur. Yani EVPN, BGP'ye _"Artık sadece IP rotalarını değil, MAC adreslerini ve VXLAN bilgilerini de taşıyacaksın"_ talimatının verilmiş halidir. Yani **BGP EVPN + VXLAN** yapısının daha optimal biçimde işleyebilmesi için geliştirilmiş bir teknik/çözüm.
-
-### RR/Spine/Controller cihazının ağda ki tüm Leaf'e bağlı host'ların MAC adreslerini öğrenme sorumluluğu/rolü flooding yöntemine nazaran tek bir merkeze yüklemek yine performams kaybı oluşturmaz mı?
-Ağ RR cihazı ile birlikte ağda ki diğer cihazlarin MAC adreslerini bir kere öğrendikten sonra bunu tablosuna kaydeder. Geri kalan iş ağa yeni katılma veya ağdan düşme durumlarında buna uygun olarak tablosunu güncellemektir. Önceden sorun VTEP cihazlarının ARP ile temin ettikleri ve ARP tablosuna geçici olarak kaydettikleri MAC adres bilgilerini yeniden ve sürekli olarak aynı temin methodunu uygulamasıydı. RR cihazi bunu bir kez kendi merkezinde temin edip diğer cihazlara bunun hakkında haber maksatlı dağıtma rolünü üstlendiği anda yineleme sorununu ortadan kaldırır. Çünkü leafs'ler artık önceden MAC adreslerinin bilgisine ve rota bilgisine sahip oldugundan (RR'den aldıkları bilgileri tablolarına yazdıklarından) tek yapılmasi gereken iş veri düzleminde verinin/veri trafiğinin taşınmasi işlemidir. Bu da hızlı bir işlem olduğundan büyük oranda performans kazancı elde edilir. Özetle asıl iş paket gönderilmeye niyet edildigi zaman ağda ki hedef cihazin adres bilgisini temin etmektir. Ancak bu cihazin CPU ve diğer önemli kaynaklarını harcamak demek. İşin yorucu kısmı burada yatıyor. Ancak bir kere rota bilgisi elde edildi mi tek yapılması gereken rota bilgisi himayesinde paketi göndermektir.
-
-Ayrıca proje de küçük bir veri merkezi topolojisi kurulduğundan zaten RR cihazı pek yorulmaz ancak 1000 veya 2000 adet Leaf durumunda zaten RR cihazi böyle bir yapı için buna uygun olarak sayısı arttırılıp konumlandırılıyor. Ve son olarak MAC adres bilgisi veri trafiğine kıyasla çok küçük bir veridir.
 
 ### Statik komşuluk ilişkili BGP EVPN ile VXLAN topoloji egzersizi örneği
 
@@ -805,6 +607,204 @@ AS1 (Türk Telekom)        AS2 (Google)
 │             │ 8.8.8.0/24│             │
 └─────────────┘ bilirim!" └─────────────┘
 ```
+
+### VPLS + MPLS ve BGP EVPN VXLAN'nin çözdüğü sorun
+Veri merkezlerinin yaygınlaşmadığı zamanlarda telekomünikasyon ağlarında **VPLS + MPLS** teknikleri kullanılıyordu. VPLS + MPLS, VXLAN'nın alternatifi olarak düşünülebilir. Farkları MPLS'in ağda uygulanabilmesi için özel donanım gerektirmesidir (**PE: Provider Edge Device** (VPLS + MPLS'li ağlarda ki literatürde VTEP yerine bu kullanılıyor)); çünkü IP paketinin içeriğine hiç dokunmayıp sadece paketin dışına MPLS etiketi konuluyor ve router yalnızca bu etikete bakıp ona göre yönlendirme yapıyor. Bu da tüm ağda ki cihazların MPLS etiketini anlayabileceği donanıma sahip olması ve bu cihazlara MPLS konfigürasyonu uygulanması demek. Yani veri düzlemin de MPLS, paketleri etiketleyen ve taşıyan bir taşıyıcıdır. Ancak tek başına bu teknik farklı lokasyonları aynıymış gibi yapamadığından **VPLS**, MPLS'e (VPLS zaten MPLS üzerinde çalışan bir servis) tıpkı VXLAN'ın yaptığı gibi farklı lokasyonları birbirlerine sanal bir ortam da bağlayarak aynı ortamdaymış havası verme davranışını sağlıyordu ancak bunu flood methoduyla yapıyordu. Yani hedef MAC adresini öğrenebilmek için tüm ağa duyuru yapmak (BUM trafiği). Telekom ağlarda kullanılan bu method veri merkezleri içinde de uyarlanmaya çalışıldı ancak bu yöntem veri merkezlerinin büyümesi ve yaygınlaşmasıyla ağa performanssal kayıp oluşturmaya başladı. Bu yüzden çözüm olarak MAC adreslerinin öğrenilmesinin farklı bir tekniği ve kombinasyonu meydana getirildi. **BGP EVPN + MPLS.** Ağ da paketler MPLS ile yine etiketleniyor ve taşınıyor ancak hedefin MAC adresi artık daha kontrollü şekilde BGP ile öğreniliyor. **BGP EVPN + VXLAN** ise aynısının alternatifidir. Paketler etiketlenmiyor bunun yerine kapsülleniyor ve özel donanım gerektirmiyor (Standart IP cihazları ile çalışabilir). Böylece ağ da özel ve pahalı donanım gerektirmeden IP cihazları ile ucuz biçim de veri merkezi ağ yapısı oluşturulabiliyor. Peki neden halen telekom ağlarda BGP EVPN + MPLS kullanılıyor? Eğer bir servis sağlayıcıysan (Türk Telekom, Vodafone vb.) zaten halihazırda devasa bir MPLS donanımlı ağın vardır. Yeni bir teknoloji olan VXLAN'a geçmek istediğinde tüm altyapıyı (IP Underlay olarak) değiştirmek yerine, sadece uçtaki router'lara _"Artık VPLS gibi flooding yapmayın, EVPN gibi akıllıca BGP konuşun ama veriyi yine bildiğimiz MPLS etiketleriyle taşıyın"_ dersin.
+
+Özetle:
+ - **VPLS + MPLS:** Eski nesil, flooding (su baskını) yapan, hantal yapı.
+ - **EVPN + MPLS:** Yeni nesil, akıllı (BGP), performanslı yapı (Genelde WAN'da).
+ - **EVPN + VXLAN:** Yeni nesil, akıllı, standart IP cihazlarla çalışan yapı (Genelde Data Center'da).
+
+Part 2'de uygulanan dinamik multicast modu ile oluşturulmuş bir VXLAN ağı, statik mod (unicast) ile oluşturulmuş bir VXLAN ağa nazaran daha performanslı çalışır. Ancak multicast VXLAN'ın da bir limiti vardır. VTEP cihazlarının fazlalaşması, (örneğin 100 veya 1000 VTEP) flood methodu ile MAC adresi bilgisi öğrenmeye çalışan bütün VTEP cihazlarını yorar. Çünkü tek bir MAC adresi bilgisini temin etmek için bütün ağda ki cihazlara bağırılma durumu olmaktadır. Bu da doğal olarak az VTEP cihazı bulunduran bir ağa nazaran performans kaybı yaşatır. Ortaya çıkan bu soruna çözüm olarak BGP EVPN tekniği meydana getirilmiştir. Kabaca VTEP cihazları MAC adres bilgisi öğrenmek için multicast grubunda ki bütün cihazlara bunu sormak yerine artık VTEP'e cihazın MAC adresinin hangi VTEP'in arkasında olduğunu söyleyen omurga cihazı ağa konuluyor. Bu cihaza **Spine/RR(Route Reflector)/Controller** deniyor. Tüm VTEP'ler bu omurga cihaza bağlanılıyor ve artık VTEP'ler (veya diğer bir adıyla **Leafs**) MAC adres bilgilerini bu omurga cihazdan alıyorlar. Omurga cihaz öğrendiği her bir MAC adresini ona baglo olan her bir leaf'e gonderiyor. Bu haberleşme işleminin protokolü **BGP EVPN** ile sağlanıyor. Özetle veri merkezlerinde şu sorun var: Farklı fiziksel lokasyonlardaki sunucular aynı Layer 2 ağdaymış gibi davranmalı. Bunu çözmek için geleneksel flood yöntemi hantal. Part 3, Part 2'nin devamı niteliğinde bir temaya sahip. Statik veya dinamik mod şeklinde ayarlanmayacak VXLAN yapılı bir ağ için BGP EVPN tekniği kullanan bir mimari kurgulanması gerekiyor. Ayrıca proje dökümanında MPLS kullanmadan demesinin sebebinin ilki MPLS icin özel donanıma ve yazılıma ihtiyaç olmasıdır. ikincisi ise bu kombinasyonun (BGP EVPN + VXLAN) veri merkezlerinde kullanılması ve yeni nesil olması ve özel donanım gerektirmeden (MPLS gibi) standart IP cihazlarında çalışmasını tanıtmaktır. Veri merkezlerinde ki bu altyapısal yenilik part 3 konsepti içinde tanıtılmayı amaçlıyor.
+### Part 2'de yapılan multicast ile flood yöntemi VPLS'mi demek?
+Multicast modunda bir VXLAN yapısı kurulduğu zaman VPLS ile VXLAN yapısı oluşturmuş olunmaz. Biz veri düzlemi seviyesinde multicast modu aracılığıyla ve flood methoduyla MAC adreslerini elde etme mekaniğini kullanmış oluyoruz VPLS kullanmış olmuyoruz. VPLS tamamen farklı bir teknikdir. Ancak hem VPLS hem de VXLAN'in temel amacı aynıdır: Farklı yerlerdeki Layer 2 (Lokal) ağları, arada bir Layer 3 ağ olmasına rağmen sanki aynı switch'e bağlıymış gibi birbirine bağlamak. Her iki teknik de statik modlarında bir paketin nereye gideceğini bilmediğinde (BUM trafik: Broadcast, Unknown Unicast, Multicast) paketi her yere kopyalar (Flood). Paket geri dönerken de _"bu MAC adresi şu uçtaymış"_ diyerek öğrenir (Learn);
+
+**VXLAN**, standart bir IP ağı (Underlay) üzerinde çalışır. Paketleri IP/UDP içine sarar.
+- **Nasıl Taşır?:** Klasik bir IP yönlendirmesi (OSPF, ISIS, BGP hatta Static Route) olan her yerde VXLAN çalıştırabilirsin.
+- **Multicast'in Rolü:** VXLAN'de multicast, sadece ortak alan görevi görür. Ağdaki bir VTEP (VXLAN ucu), bilmediği bir MAC adresini ararken paketi multicast grubuna gönderir. O gruba üye olan diğer VTEP'ler paketi alır. Yani multicast, VXLAN'in içindeki trafiği dağıtmak için kullandığı bir araçtır, teknolojinin kendisi değildir.
+
+**VPLS** ise bir MPLS (Multiprotocol Label Switching) teknolojisidir. Paketleri IP içine değil, MPLS etiketleri (labels) içine sarar.
+- **Nasıl Taşır?:** VPLS çalıştırabilmek için ağındaki tüm cihazların MPLS desteklemesi, arkada BGP gibi protokollerle **Pseudowire (sanal kablo)** tünelleri kurması gerekir.
+- **Flood Mekanizması:** VPLS'te multicast grubu kullanılmaz. Bunun yerine uç cihazlar (PE - Provider Edge) arasında tam örgü (Full-Mesh) sanal kablolar kurulur. Bir yayın (broadcast) geldiğinde, cihaz bu paketi tüm sanal kablolara tek tek kopyalayarak gönderir (Head-end Replication).
+### Kontrol Düzlemi (Control Plane) ve Veri Düzlemi (Data Plane)
+Bir ağın işleyişi özetle iki ayrı katmanda/düzlemde ele alınabilir; kontrol ve veri. Bir ağ kendi yapısının kontrolünü yönetilebilir ve yönetilemeyen cihazlar üzerinden sağlar. Aynı şekilde yönetilebilir bir ağ cihazı aynı zaman da veri iletim için de kullanılabilir. Her yönetilebilir ağ cihazı iki düzleme sahiptir; kontrol ve veri düzlemi ve buna müteakip bu düzlemlerde kontrol ve veri trafikleri oluşur.
+
+Bir ağ da **yönetilemeyen** ve **yönetilebilen** olarak iki cihaz çeşidi bulunabilir;
+
+- **Unmanaged Switch'ler:** Sadece veri düzlemine sahiptir denilebilir. İçinde bir işletim sistemi veya karar mekanizması yoktur bu yüzden gelen sinyali basit bir tabloya göre iletir.
+- **Yönetilebilir Cihazlar (Router, Switch):** Kesinlikle her iki düzleme de sahiptir. Çünkü bu cihazların bir CPU'su, bir işletim sistemi (IOS, FRR, Junos vb.) ve bir yönetim arayüzü (SSH, Konsol) vardır. Bu yönetimsel süreçlerin tamamı Kontrol Düzlemi'nde döner.
+
+**Kontrol düzlemi/tabanında** işlem yapan cihazlar; _"en kısa rota hesaplaması, MAC adres bilgisini öğrenme, hangi cihazların ağdan düştüğünü veya ağa katıldığını"_ vb. işlemleri hesapladıklarından CPU gücünden yararlanırlar. MAC, komşuluk ilişkileri, route tablosu vb. oluşturup hazırlar ve güncellerler.
+
+**Veri düzlemi/tabanında** işlemler ise sadece **kas gücüdür**. Kontrol düzlemi (CPU) kararı verdikten sonra bir tablo oluşturur ve bu tabloyu **ASIC (Application-Specific Integrated Circuit)** denilen özel çiplere kopyalar. ASIC, sadece tek bir işi (paket yönlendirme) yapmak için üretilmiş süper hızlı bir yongadır. Mantık yürütmez, sadece tabloya bakar: _"Paket A portundan geldi, hedefi B IP'si, o zaman C port"_ gibi. Sadece paketleri iletir. Gelen paketin başlığına bakar, tabloda eşleşen yere gönderir. Hiçbir _"hesaplama"_ veya _"karar verme"_ süreciyle ilgilenmez. ASIC'ler donanım seviyesinde çalıştığı için gecikme (latency) neredeyse sıfırdır. Bu sayede veriyi saniyeler içinde iletebilirler.
+
+OSPF, BGP vb. protokol ve teknikler ile kontrol düzleminde işlem yapan cihazların iletişimi otomatikleştirilip ağ dinamik (otomatizasyon) hale getirilebilir. Bu düzlemere takiben bir ağ da iki tip trafik olur bunlar; **kontrol** ve **veri trafiğidir**;
+
+**Kontrol trafiği**, kontrol düzleminde işlem yapan cihazlar arasında ki teyitlerdir. Bu, ağ üzerinden diğer cihazlara kontrol paketleri iletilerek kontrol edilir örneğin;
+
+- **ARP (Address Resolution Protocol):** Bir cihazın IP adresini bilip MAC adresini bunun üzerinden öğrenmeye çalıştığı ve sorduğu _"Kimde bu IP var?"_ sorusu bir kontrol trafiğidir.
+- **Keepalive (Hayatta mısın?) Paketleri:** BGP komşuları (mesela bir Leaf ile RR) birbirine sürekli minik paketler atar. _"Ben buradayım, hala çalışıyorum"_ derler. Eğer bu kontrol paketleri kesilirse, cihazlar o yolun çöktüğünü anlar ve trafiği keser. Aynı şekilde OSPF'de komşuları ile buna benzer biçimde işler. 
+
+**Veri trafiği** ise, veri düzleminde işlem yapan cihazlar arasında ki doğrudan veri iletimleridir. Asıl kullanıcı verisinin (YouTube videosu, dosya transferi, ping paketi) geçtiği yerdir. Donanım (ASIC çipler) üzerinde çalışır. Kontrol düzlemi _"adres ve rote şu dur"_ der, veri düzlemi ise paketi oraya taşır. Bu ayrımın olmasının sebebi örneğin; eğer bir cihazda kontrol düzlemi (CPU) çok meşgul olursa (örneğin çok karmaşık BGP hesaplamaları yapıyorsa), veri düzlemi (ASIC) bundan etkilenmez. Yani cihaz yeni yollar hesaplarken, mevcut paketleri iletmeye tam hızda devam edebilir. Bu da bir cihazda iki farklı iş birbirlerini etkilemeden yapılabilir anlamına gelip bir cihaz farkli rollerde işler yapabilir anlamına gelir.
+
+Özetle bir ağda ki işleyiş iki düzlem de oluyor; biri kontrol diğeri veri. Kontrol düzleminde ki ağ cihazları; MAC ve route tablosu, en kısa rota hesaplama vb. karmaşık hesaplamaların yapıldığı düzlemdir. Aynı zaman da buna ARP, OSPF ve BGP komşuluk iletişimi gibi kontrol trafiği de dahil edilebilir. Veri düzleminde ise kontrol trafiğinin hazırladğı en kısa rota bilgisi, MAC ve route gibi tablolardan yola çıkarak sadece hedefe verinin taşınması düzlemidir. Bu yüzden kontrol düzlemi işlemleri için CPU, veri düzleminde ki işlemler için ASIC donanım kullanılır. Ayrıca bu iki bileşen genelde tek bir cihaz da bulunduğundan bir ağ cihazı aslında iki düzlemde çalışabilir potansiyeldedir ve zaten çalışır. Örnek olarak Wireshark'da görülen ARP isteği _"Who has 192.168.1.1? Tell 192.168.1.2"_ mesajları tam olarak kontrol düzlemi trafiğinin paketleridir. Ping atmadan önce cihaz _"bu IP'nin MAC adresi nedir?"_ diye soruyor — bu bir kontrol sorusu, veri taşımıyor. Cevabı öğrenince MAC tablosuna yazıyor, sonra gerçek veriyi gönderiyor.
+
+```
+ARP → "MAC adresin nedir?" → kontrol düzlemi
+ICMP ping → gerçek veri → veri düzlemi
+```
+
+BGP EVPN'in çözdüğü sorun da tam burada: Normal VXLAN'da VTEP bilinmeyen bir MAC için ARP flood yapıyor — tüm ağa _"bu MAC kimde?"_ diye bağırıyor. BGP EVPN ile ise bu bilgi zaten kontrol düzleminde önceden dağıtılmış — ARP flood'a gerek kalmıyor.
+
+### Protokol nedir? Bir protokol nasıl tasarlanır? Ne ile tasarlanır?
+
+Bir cihazda bir paket oluşturmak veya bir paketin çözümlenmesi işlemleri cihazin bunları yapabilecek mahiyette **programa/uygulamaya** sahip olmasını gerektirir. Bu program aslında paketin nasıl paketlenmesi ve işlenmesi gerektiğinin belirtimleridir. Yani aslında protokoldür. Bu yüzden bir programalama dili ile özel bir protokol tasarlamak mümkündür.
+
+#### Makine bir paket geldiğinde _"BGP protokolü uygulanacaktır"_ işlemini nereden biliyor/anlıyor?
+Bir makine (router veya switch), gelen paketin BGP olduğunu paketin içindeki katmanlı başlık (header) bilgilerine bakarak anlar. Bu süreç bir mektup zarfını açmaya benzetilebilir. Makine her katmanda bir sonra ki adımın ne olduğunu söyleyen bir "etiket" görür:
+
+1. **Katman 2 (Ethernet)** - _"İçeride ne var?"_ Kablo üzerinden gelen elektrik sinyalleri bitlere (0 ve 1) dönüşür. Makine önce en dıştaki Ethernet Başlığına bakar. Burada **"EtherType"** adı verilen 2 bytelık bir alan vardır. Eğer burada `0x0800` yazıyorsa, makine şunu anlar: _"Tamam, bu paketin içinde ki bir sonra ki katman IPv4 protokolüdür."_
+2. **Katman 3 (IP)** - _"Hangi ulaşım yolu?"_ Makine şimdi IP başlığını okur. IP başlığının içinde **"Protocol"** adında bir alan bulunur. Eğer burada `6` yazıyorsa, makine şunu anlar: _"Bu IP paketinin içinde TCP verisi taşınıyor."_
+3. **Katman 4 (TCP)** - _"Hangi uygulama?"_ Şimdi makine TCP başlığına odaklanır. TCP katmanında en kritik bilgi **Port** Numarasıdır. Eğer **"Destination Port" (Hedef Port)** kısmında `179` yazıyorsa, makine kesin olarak şunu söyler: _"Bu paket BGP protokolüne ait bir mesajdır!"_
+4. **Yazılıma Teslim (Uygulama Katmanı)** - Makine paketin BGP olduğunu anladığında, onu işletim sistemindeki (örneğin FRR, Cisco IOS, Junos) BGP servisine (daemon) yönlendirir. BGP servisi paketi açar ve içindeki **"Update", "Keepalive"** veya **"Open"** gibi mesajları okuyup işlemine başlar.
+
+EVPN durumunda ne oluyor? BGP EVPN kullanırken işler bir tık daha detaylanır. Makine paketin BGP (Port 179) olduğunu anladıktan sonra, BGP mesajının içine bakar. BGP'nin içinde **AFI (Address Family Identifier)** ve **SAFI (Subsequent AFI)** denilen belirteçler vardır:
+
+- **AFI 25:**  _"Ben L2VPN (Layer 2 VPN) bilgisi taşıyorum."_
+- **SAFI 70:** _"Ve bu bilgi özellikle EVPN formatındadır."_
+
+Makine bu kodları gördüğünde, gelen bilginin sıradan bir internet rotası olmadığını, senin VXLAN yapınla ilgili bir MAC adresi güncellemesi olduğunu anlar ve onu EVPN tablosuna işler. Özetle Makine;
+
+1. Ethernet başlığına bakar: _"İçeride IP mi var?"_ -> Evet.
+2. IP başlığına bakar: _"İçeride TCP mi var?"_ -> Evet.
+3. TCP başlığına bakar: _"Port 179 mu?"_ -> Evet.
+4. Karar: _"O zaman bu bir BGP paketidir, BGP protokol kurallarını uygula."_
+
+Eğer port `179` değil de `80` olsaydı, makine _"BGP protokolü uygulanacaktır"_ demez, _"Bu bir web trafiğidir (HTTP)"_ derdi. Yani her şey paketin üzerine basılmış bu standart **"etiketler"** (portlar ve protokol numaraları) üzerinde ve sayesinde yürür.
+
+#### Özetle bir protokolün işlenmesi için bir program, arkaplan programı, servis (daemon) tasarlanması mı gerekli? Örneğin C ile bir protokol tasarlanabilir mi? Paketin işlenmesi cihazın paketi servise yönlendirmesiyle oluyorsa paketlenmesi de aynı yerden mi oluyor?
+
+Bir protokol, özünde çalışan bir koddur. Eğer bir program (daemon/servis) yoksa, protokol sadece kağıt üzerinde bir taslak olarak kalır. C ile bir protokol tasarlanabilir mi? Evet. Hatta bugün kullandığın BGP (FRR veya Quagga gibi yazılımlar), OSPF, ve TCP/IP yığınlarının neredeyse tamamı C ile yazılmıştır. C ile bir protokol yazmak için şunları yaparsın:
+
+- **Struct (Yapı) Tanımlarsın:** Paketin başlıklarını (Header) C'deki `struct` yapılarıyla oluşturursun. Örneğin, BGP'nin **"Marker", "Length"** ve **"Type"** alanlarını temsil eden bir struct yazarsın.
+- **Socket Programming:** İşletim sisteminden **"Raw Socket"** açarak, paketi hiçbir işleme uğramadan ham bir şekilde ağ kartına göndermeyi veya oradan okumayı sağlarsın.
+- **Döngü (Event Loop):** Arka planda sürekli çalışan bir `while(1)` döngüsü kurarsın; bu döngü port `179`'u dinler, paket gelince onu senin yazdığın fonksiyonlara gönderir.
+
+Paketleme ve çözme aynı yerden mi olur? Evet, genellikle aynı Daemon (Servis) bu işin her iki ucundadır. Bu sürece ağ dünyasında encapsulation (Paketleme) ve decapsulation (Paketi Açma) denir.
+- **Paketleme (Giden Trafik):** Örneğin BGP servisin bir komşusuna _"Ben buradayım"_ (Keepalive) demek istiyor. Servis, C kodunda ilgili struct'ı doldurur, bellekte bir buffer oluşturur ve bunu ağ kartına (Kernel üzerinden) gönderir.
+- **Çözme (Gelen Trafik):** Karşıdan bir paket geldiğinde, cihaz (Kernel) port numarasına bakıp _"Bu BGP'ye ait"_ der ve paketi senin BGP servisine teslim eder. Servisin içinde ki kod, tekrar C struct yapısına dönüştürür ve içindeki mesajı okur.
+
+Neden _"Daemon/Servis"_ tasarlanmalı? Ağı sürekli izleyen ve onunla iletişimde olması gereken bir şeyin olması gereklidir. Bu yüzden daemon/servis şeklinde arkaplanda çalışacak bir program olarak tasarlanmalıdır.
+
+#### Soket programlama kütüphaneleri ağ kartını nasıl programlayabileceğinin hazır kaynakları mı oluyor? Bir C soket programlama kütüphanesi aslında kernel'in ağ kartına nasıl müdahele etmesi gerektiğinin ifadesi mi oluyor?
+
+C dilindeki soket programlama ve onun kütüphane kaynakları, kernel ile ağ kartı donanımının nasıl davranması gerektiğinin ifadesidir. Soket kütüphanesi bir **"Tercüman"dır.** Yazılan C kodu doğrudan ağ kartındaki (NIC) transistörleri yönetmez. Ağ kartı çok hızlıdır ve karmaşıktır; ona doğrudan müdahale etmek yerine, Kernel çevirmenlik yapar. Soket kütüphanesi (`sys/socket.h` gibi) sana şunları sağlar; _"Ağ kartı Intel mi, Realtek mi?"_ diye düşünülmeye gerek kalmaz. Sadece `socket()` fonksiyonunu çağırırsın. `send()` komutu verildiğinde, aslında Kernel'e şu denir örnek olarak: _"Benim elimde bir veri yapısı (struct) var. Bunu BGP protokol kurallarına göre paketle ve ağ kartı üzerinden dışarı fırlat."_
+
+Kernel ve ağ kartı ilişkisinde "müdahele" olarak ifade edilen şey aslinda **Sistem Çağrılarıdır;**
+
+- **Kod (User Space):** _"Soket aç, port 179'u dinle."_
+- **Soket Kütüphanesi:** Bu isteği işlemcinin anlayacağı bir "Interrupt" (yarıda kesme) sinyaline dönüştürür.
+- **Kernel (Kernel Space):** Bu sinyali alır, _"Tamam, kullanıcı BGP konuşmak istiyor"_ der. Kartın Driver'ına (Sürücü) talimat gönderir.
+- **Ağ Kartı (Hardware):** Driver'dan gelen veriyi alır ve fiziksel kabloya elektrik sinyali olarak bırakır.
+
+Protokol tasarlarken neyi programlıyoruz? Eğer sıfırdan bir protokol tasarlanıyorsa, aslında Kernel'e şunların nasıl yapılacağı tarif edilir:
+
+1. **Paketin Yapısı:** _"İlk 2 byte her zaman 'Mesaj Tipi' olsun."_ (Bu C `struct`ı şeklinde yazılmış olabilir).
+2. **Hata Kontrolü:** _"Eğer karşıdan 30 saniye boyunca 'Keepalive' gelmezse bağlantıyı kopar."_ (Bu `while` döngüsü olarak yazılmış olabilir).
+3. **Yönlendirme:** _"Eğer gelen pakette EVPN Type-2 yazıyorsa, içindeki MAC adresini al ve tablodaki şu satıra yaz."_ (`if-else` şeklinde yazılmış olabilir).
+
+#### Madem bir protokol cihazin ardında çalışan arkaplan servisi o halde TCP veya UDP için bir makine de _udpd_ veya _tcpd_ diye niye bir servis yok?
+
+TCP, UDP, BGP hepsi protokol ama farklı katmanlarda çalışıyorlar. OSI modeli hatırlanacak olursa;
+
+```
+Layer 7 → Uygulama (HTTP, BGP, OSPF)
+Layer 4 → Transport (TCP, UDP)
+Layer 3 → Ağ (IP)
+Layer 2 → Veri bağlantısı (Ethernet, MAC)
+Layer 1 → Fiziksel (kablo)
+```
+
+**TCP ve UDP** → **Layer 4'te** çalışıyor. Veriyi nasıl taşıyacağını belirliyor. **BGP → Layer 7'de** çalışıyor. Ama taşınmak için TCP kullanıyor yani BGP mesajları TCP paketlerinin içinde gidiyor.
+
+```
+BGP mesajı
+    ↓
+TCP paketine sarılıyor (port 179)
+    ↓
+IP paketine sarılıyor
+    ↓
+Ethernet frame'ine sarılıyor
+    ↓
+Fiziksel kablo
+```
+
+Yani BGP bir uygulama protokolü. Routing bilgilerini taşımak için tasarlanmış. TCP veya UDP ise bir taşıma protokolü. BGP'nin güvenli iletilmesi için kullanılıyor.
+
+### BGP ve EVPN ayrı kavramlarsa VXLAN flood sorunu için mi geliştirilmişler yoksa bunlar genel bir teknik ama bu sorunu da çözebilecek mahiyette teknikler mi? Flood sorunu olmadan evvel bu teknik veya kavramlar var mıydı? Yoksa flood sorunu üzerine geliştirilmiş teknikler mi?
+
+**BGP** vardı ve eski bir protokoldü; ancak **EVPN**, tam olarak **"flood"** (BUM trafiği) ve ölçeklenebilirlik sorunlarını çözmek için BGP'nin üzerine inşa edilmiş yeni bir **BGP "uzantısı" (extension)** olarak doğdu. AS'ler arası routing protokolü.
+
+**Klasik BGP (Border Gateway Protocol)**
+İnternetin ana protokolüdür. 1980'lerden beri var. İlk görevi sadece **Layer 3 (IP) rotalarını** taşımaktı. Yani _"X IP adresine gitmek için şu yolu izle"_ derdi. Başlangıçta BGP sadece şunu yapıyordu: _"Ben AS 1'im ve şu IPv4 adres bloklarına sahibim"_ diye diğer AS'lere duyurmak. İnternet bu BGP duyurularından oluşuyor. Bir internet servis sağlayıcısı da AS olduğuna göre diğer ISS'lerle iletişim için bu protokol kullanılıyor. Bir bilgisayar Google'a bağlanabiliyorsa bu BGP sayesindedir. Router'lar Google'ın IP bloğunun hangi AS'te olduğunu BGP'den öğreniyor. Yani **sıradan BGP = AS'ler arası IPv4 rota duyurusu**. İnternetin omurgası BGP. Dünyada yaklaşık 70.000'den fazla AS var ve hepsi BGP ile birbirine bağlı. Senin paketi Google'a ulaştıran yol boyunca onlarca AS geçiyor. BGP'yi OSPF'e benzetebiliriz ancak BGP'de rota hesaplama OSPF'ten tamamen farklı. **OSPF → en kısa yolu** hesaplıyor. Matematiksel, objektif. **BGP → politik (ticari) olarak en iyi yolu hesaplıyor** ama "en iyi" çok faktöre bağlı:
+
+```
+AS path uzunluğu  → kaç AS'ten geçiyor
+Local preference  → bu yolu ne kadar tercih ediyorum
+MED               → komşuya "benden şu yoldan gir" demek
+Community         → rota etiketleme
+Ticari ilişki     → transit mi, peer mi?
+```
+
+Gerçek hayatta bir paket en kısa fiziksel yoldan gitmeyebilir. Turkcell _"bu trafiği Frankfurt'taki ortağımdan geçireyim"_ diyebilir — fiziksel olarak daha uzun ama ticari olarak daha avantajlı. Bu yüzden bazen Türkiye'den Türkiye'ye giden bir paket Frankfurt veya Londra'dan dönüyor politik rota kararı. Örnegin Turkcell Google'a BGP ile bağlanmak istediğinde şunlar gerekiyor:
+
+1. **Fiziksel bağlantı** — önce fiziksel olarak bağlı olmaları lazım. Bu genellikle **IXP (Internet Exchange Point)** denilen noktalarda oluyor. İstanbul'da **TurkIX** böyle bir nokta — farklı AS'ler burada fiziksel olarak buluşuyor.
+2. **BGP yapılandırması**;
+
+```
+# Turkcell router'ında:
+router bgp 9121
+neighbor 195.x.x.x remote-as 15169  ← Google'ın IP'si ve AS'i
+```
+
+```
+# Google'ın router'ında da:
+router bgp 15169
+neighbor 81.x.x.x remote-as 9121  ← Turkcell'in IP'si ve AS'i
+```
+
+3. **Ticari anlaşma** — teknik kısım bu kadar basit aslında. Asıl mesele ticari anlaşma — kim kimin trafiğini taşıyacak, karşılığında ne ödeyecek. Pratikte bu bağlantıyı kurabilmek için fiziksel altyapı ve ticari anlaşma gerekiyor.
+
+**MP-BGP (Multi Protocol BGP)**
+BGP'yi özel kılan şey, **MP-BGP (Multi-Protocol BGP)** haline gelebilmesidir. Yani BGP'ye _"Sadece IP değil, başka bilgiler de taşı"_ diyebiliyoruz. Sıradan BGP önceden yalnızca tek protokol ile çalışabildiğinden yalnızca IP rota bilgilerini taşıyabiliyordu. Ancak MP-BGP ile BGP'nin taşıyabildiği adres bilgisi genişletildi. MP-BGP ile BGP artık **IPv6, VPN bilgisi, MAC adresleri** gibi farklı türde bilgileri de taşıyabiliyor. EVPN tam da bu esnekliği kullanıyor. Buna müteakip **EVPN MP-BGP'nin bir uzantısıdır.** Gerçek hayatta kullanım örnekleri:
+
+- İnternet servis sağlayıcıları **sıradan BGP** kullanıyor — _"ben şu IP bloklarına sahibim"_ duyurusu.
+- Büyük şirketler **L3 VPN için MP-BGP** kullanıyor — farklı şehirlerdeki ofisler arasında özel ağ.
+- Veri merkezleri **L2 EVPN için MP-BGP** kullanıyor — iç ağ yapısında kullanilan teknik bizim projede yaptığımız şey.
+
+**EVPN (Ethernet VPN)**
+**EVPN** ise çok daha genç bir tekniktir (2010'ların başı). VXLAN ve benzeri teknolojilerle birlikte, veri merkezleri devasa boyutlara ulaştığında ortaya çıkan "flood" sorununa bir çözüm olarak geliştirildi. Geleneksel Layer 2 ağlarda (VPLS gibi), bir cihazın nerede olduğunu öğrenmek için **"Flood and Learn" (sel gibi yayıl ve öğren)** kullanılıyordu. Bu da 1000'lerce cihazlık ağlara büyük yük oluşturuyordu. Ağ mühendisleri: _"Biz neden Layer 2 (MAC) bilgilerini de Layer 3 (IP) rotaları gibi önceden dağıtmıyoruz? Elimizde BGP gibi devasa verileri taşıyabilen sağlam bir protokol var, MAC adreslerini de onun içine paketleyip gönderelim."_ dendi. Klasik BGP normalde IP adreslerini (prefix) taşımak için tasarlanmıştı. EVPN (Ethernet VPN) ise BGP'ye yeni bir yetenek kazandırarak, BGP paketlerinin (Update paketleri) içerisinde MAC adreslerini (IP rota bilgilerini de) birer rota gibi taşımasını sağlayan bir aile **(Address Family)** eklentisidir. Yani sadece **EVPN + VXLAN** dendiği zaman kastedilen şey **BGP paketlerinde MAC adres bilgilerinin de barındırılmasıdır.** Bunu takiben aslında EVPN demek BGP demek ancak içerisinde klasik şekilde yalnızca IP rota bilgilerini içeren şekilde değil aynı zaman da MAC adres bilgilerini içerecek biçim de formlanmış bir **BGP formu = EVPN**. Kısaca :d BPG paketinin içinde MAC adresinin de olması ve taşınması durumuna EVPN deniliyor. Ayrıca bazı ağ topolojilerinin yapılarını ifade ederken sadece **EVPN + VXLAN** veya **EVPN + MPLS** gibi kavramlar kullanılabilir ve neden **BGP + VXLAN** değilde o şekilde kullandıldığı doğallıkla sorulabilir. Bir ağ topolojisinin yapısı hakkında açıklama yaparken _"BGP kullanıyorum"_ denilirse çok geniş — hangi adres ailesi, ne için? _"EVPN kullanıyorum"_ dersen spesifik — MAC adresleri için BGP uzantısı kullanıyorum. **BGP denilirse** → genel protokol, çok amaçlı ama **BGP EVPN denilirse** →  MAC adresi taşıyan spesifik yapılandırma. Network dünyasında kavramsal bir iç içelik durumu söz konusu olduğundan şu durumlar ortaya çıkabiliyor; Aynı şeye farklı isimler veriliyor (VTEP = PE = tunnel endpoint). Her üretici kendi terminolojisini ve literatürünü kullanıyor (Cisco vs Juniper vs Linux).
+
+Normal bir cihaz, diğer bir cihazın nerede olduğunu anlamak için trafiğin gelmesini bekler veya her yere sorar (Flooding). EVPN'de ise durum şöyledir:
+
+1. Bir router (VTEP/PE), kendisine bağlı bir bilgisayarın MAC adresini öğrendiği anda, bunu bir BGP Update paketine koyar.
+2. Bu paketin içine _"`A0:B1:C2` MAC adresi bende, bana ulaşmak için şu IP'ye gel"_ bilgisini yazar.
+3. **RR/Spine/Controller** cihazı bu bilgiyi alır ve tablosuna işler. Ardından bunu ona bağlı olan **client/leafs** cihazlarina dağıtır.
+4. Ağdaki diğer tüm cihazlar bu BGP paketini alır ve kendi tablolarına işler.
+
+Buna network literatüründe **Control-Plane Learning (Kontrol Düzlemi ile Öğrenme)** denir. Yani artık **"su baskını" (flooding)** yaparak öğrenmek zorunda değilsin; haberleşme başlamadan herkes kimin nerede olduğunu biliyor.
+
+**BGP EVPN kombinasyonu**
+EVPN aslında BGP'nin taşıdığı bir "yük" (payload) gibidir. BGP bir kamyonsa, EVPN o kamyonun içindeki özel bir kargo tipidir. 
+- **Flood Öncesi Durum:** Eskiden MAC adreslerini öğrenmek için paketin her yere gitmesi (flood) şarttı. Çünkü bir **"kontrol merkezi"** yoktu. 
+- **EVPN Sonrası Durum:** EVPN sayesinde artık bir VTEP, arkasına yeni bir cihaz takıldığında bunu bir BGP mesajı olarak paketler. Bu mesaja _"Type-2 Route" (MAC/IP Advertisement)_ denir. Diğer tüm VTEP'lere bu bilgiyi fısıldar. 
+**Sonuç:** Artık kimsenin **"flood"** yapmasına gerek kalmaz. Çünkü her VTEP'in elinde, ağda ki her bir MAC adresinin hangi VTEP'in arkasında olduğuna dair devasa bir _"telefon rehberi"_ (BGP tablosu) oluşur. Yani EVPN, BGP'ye _"Artık sadece IP rotalarını değil, MAC adreslerini ve VXLAN bilgilerini de taşıyacaksın"_ talimatının verilmiş halidir. Yani **BGP EVPN + VXLAN** yapısının daha optimal biçimde işleyebilmesi için geliştirilmiş bir teknik/çözüm.
+
+### RR/Spine/Controller cihazının ağda ki tüm Leaf'e bağlı host'ların MAC adreslerini öğrenme sorumluluğu/rolü flooding yöntemine nazaran tek bir merkeze yüklemek yine performams kaybı oluşturmaz mı?
+Ağ RR cihazı ile birlikte ağda ki diğer cihazlarin MAC adreslerini bir kere öğrendikten sonra bunu tablosuna kaydeder. Geri kalan iş ağa yeni katılma veya ağdan düşme durumlarında buna uygun olarak tablosunu güncellemektir. Önceden sorun VTEP cihazlarının ARP ile temin ettikleri ve ARP tablosuna geçici olarak kaydettikleri MAC adres bilgilerini yeniden ve sürekli olarak aynı temin methodunu uygulamasıydı. RR cihazi bunu bir kez kendi merkezinde temin edip diğer cihazlara bunun hakkında haber maksatlı dağıtma rolünü üstlendiği anda yineleme sorununu ortadan kaldırır. Çünkü leafs'ler artık önceden MAC adreslerinin bilgisine ve rota bilgisine sahip oldugundan (RR'den aldıkları bilgileri tablolarına yazdıklarından) tek yapılmasi gereken iş veri düzleminde verinin/veri trafiğinin taşınmasi işlemidir. Bu da hızlı bir işlem olduğundan büyük oranda performans kazancı elde edilir. Özetle asıl iş paket gönderilmeye niyet edildigi zaman ağda ki hedef cihazin adres bilgisini temin etmektir. Ancak bu cihazin CPU ve diğer önemli kaynaklarını harcamak demek. İşin yorucu kısmı burada yatıyor. Ancak bir kere rota bilgisi elde edildi mi tek yapılması gereken rota bilgisi himayesinde paketi göndermektir.
+
+Ayrıca proje de küçük bir veri merkezi topolojisi kurulduğundan zaten RR cihazı pek yorulmaz ancak 1000 veya 2000 adet Leaf durumunda zaten RR cihazi böyle bir yapı için buna uygun olarak sayısı arttırılıp konumlandırılıyor. Ve son olarak MAC adres bilgisi veri trafiğine kıyasla çok küçük bir veridir.
 
 **AS2 (Google), AS1**'e der ki: _"`8.8.8.0/24` bloğuna ulaşmak istersen benden geç."_ AS1 bunu öğrenir ve paketleri Google'a yönlendirir. İnternette BGP farklı AS'ler arasında kullanılıyor — Turkcell ile Google gibi. Az önce ki örnekte olduğu gibi işte buna **eBGP** deniyor.  Ama BGP aynı zamanda aynı AS içinde de kullanılabiliyor — buna **iBGP** deniyor.
 

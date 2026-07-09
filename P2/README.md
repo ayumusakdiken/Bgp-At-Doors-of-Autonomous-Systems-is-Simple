@@ -1,14 +1,14 @@
 ## Konu Başlıkları
-  - [Router ve Switch cihazlarının birbirlerinden asıl farkları](#router-ve-switch-cihazlarının-birbirlerinden-asıl-farkları)
-  - [Ağ teriminin geniş ve bağlama göre değişkenlik gösterebilir (formlanabilir) cinste bir kavram oluşu üzerine](#ağ-teriminin-geniş-ve-bağlama-göre-değişkenlik-gösterebilir-formlanabilir-cinste-bir-kavram-oluşu-üzerine)
-  - [VLAN nedir?](#vlan-nedir)
-  - [Layer 3 cihazları ile mantıksal olarak ağ segmenlendirilmesine rağmen neden Layer 2 katmanında bu sorun çözülmeye çalışılmıştır?](#layer-3-cihazları-ile-mantıksal-olarak-ağ-segmenlendirilmesine-rağmen-neden-layer-2-katmanında-bu-sorun-çözülmeye-çalışılmıştır)
   - [VLAN egzersizi](#vlan-egzersizi)
+  - [VLAN nedir?](#vlan-nedir)
   - [Gerçek senaryo da VLAN ağ dilimlemesi teknik olarak nerede ve nasıl yapıyor? Ayrım tam olarak nerede yapılıyor konfigüre ediliyor?](#gerçek-senaryo-da-vlan-ağ-dilimlemesi-teknik-olarak-nerede-ve-nasıl-yapıyor-ayrım-tam-olarak-nerede-yapılıyor-konfigüre-ediliyor)
   - [VLAN'ın teknik sınırları ve yetersizliği](#vlanın-teknik-sınırları-ve-yetersizliği)
   - [VXLAN nedir?](#vxlan-nedir)
   - [VLAN ile VXLAN'ın konfigürasyonel farklılıkları](#vlan-ile-vxlanın-konfigürasyonel-farklılıkları)
   - [VXLAN'ın İşleyişi](#vxlanın-i̇şleyişi)
+  - [Router ve Switch cihazlarının birbirlerinden asıl farkları](#router-ve-switch-cihazlarının-birbirlerinden-asıl-farkları)
+  - [Ağ teriminin geniş ve bağlama göre değişkenlik gösterebilir (formlanabilir) cinste bir kavram oluşu üzerine](#ağ-teriminin-geniş-ve-bağlama-göre-değişkenlik-gösterebilir-formlanabilir-cinste-bir-kavram-oluşu-üzerine)
+  - [Layer 3 cihazları ile mantıksal olarak ağ segmenlendirilmesine rağmen neden Layer 2 katmanında bu sorun çözülmeye çalışılmıştır?](#layer-3-cihazları-ile-mantıksal-olarak-ağ-segmenlendirilmesine-rağmen-neden-layer-2-katmanında-bu-sorun-çözülmeye-çalışılmıştır)
   - [Uç cihazlar Layer 3 katmanında çalışan cihazlar ise nasıl Layer 2 paketi gönderebiliyorlar?](#uç-cihazlar-layer-3-katmanında-çalışan-cihazlar-ise-nasıl-layer-2-paketi-gönderebiliyorlar)
   - [Statik mod ile temel ve basit bir VXLAN topoloji örneği](#statik-mod-ile-temel-ve-basit-bir-vxlan-topoloji-örneği)
   - [Unicast, Multicast, Broadcast nedir?](#unicast-multicast-broadcast-nedir)
@@ -29,95 +29,6 @@
   - [Uç cihazdan gönderilen bir paketin VXLAN yapılı ağda ki yolculuğu](#uç-cihazdan-gönderilen-bir-paketin-vxlan-yapılı-ağda-ki-yolculuğu)
 
 ## Part 2
-
-### Router ve Switch cihazlarının birbirlerinden asıl farkları
-OSI modeli (ağ iletişimini katmanlara bölen model) bazında **Router Layer 3** katmanında çalışır ancak **Switch Layer 2** katmanında çalışır.
-
-<img src="../Images/part2/world_of_switch_and_router.png" align="right" style="width: 30%; height: auto;">
-
-Switch subnet'leri anlamaz. Switch sadece MAC adresi ile (layer 2'de) çalışır — _"bu MAC adresi bu porta bağlı"_ diyor ve paketi oraya gönderiyor. IP adresine, subnet'e bakmıyor. Kısaca Switch'e bağlı cihazları mantıksal olarak subnetlere bölsek de Switch tamamen farklı şekilde çalıştığından (MAC adresine göre) bu yapılandırmadan bir haber şekilde ona gelen paketlerin kime iletileceğini kendi ağında mevcut mu (yani bu cihazlar bu Switch'e bağlımı) diye bakarak paketleri doğru makinelere yönlendirebilir. 
-
-Teorik açıdan bakıldığında sanki switch'e bağlı tüm cihazlar birbirlerine `ping` atabilir iması oluşuyor olabilir. Ancak bu tamamen yanlış bir ima ve zan olacaktır. Çünkü Switch IP ile değil, MAC adresi ile çalışıyor olsada hostlar IP katmanında (Layer3 seviyesinde) karar verir; aynı subnet içinde olan cihazlar arasındaki paket transferi davranışı ile farklı subnette bulunan bir cihaza erişilmek istenildiğindeki davranışı bir değildir. Hostun davranış diyagramı aşağıdaki gibidir:
-
-- Aynı subnet: ARP atılır → MAC öğrenilir → switch iletir
-- Farklı subnet: ARP atılmaz bile, gateway aranır -> o da olmadığı için paket host'dan dışarı dahi çıkamaz.
-- Farklı subnet (default gateway'li): ARP atılmak istenir -> gateway aranır -> ARP atılır -> hosta iletilir -> host farklı subnette olmasından dolayı MAC adresini cihazın MAC adresi yerine gateway'in MAC adresini olarak yazar -> switch içerisinde paket ölür.
-
-Peki switch'ler neden sadece MAC adreslerine bakıp cihazlar arası iletişimi sağliyor diye bir soru sorulursa bu tamamen bu cihazin bu sekilde çalışılması istendiğinden dolayı bu şekilde tasarlanmış olduğu şeklinde cevap verilebilir :d
-
-<p align="center">
-  <img src="../Images/part2/router_subnet_and_switch_subnet_difference.png" style="width: 40%; height: auto;">
-</p>
-
-Switch → Aynı ağdaki cihazları birbirine bağlar. "Sen ve ben aynı ağdayız, direkt konuşabiliriz." (`192.168.1.0/24` ağında ki tüm cihazlar switch'i kullanarak birbirleriyle iletişim kurabilir)
-
-Router → Farklı ağlar arasında köprü kurar. "Sen farklı ağdasın, sana ulaşmak için yönlendirme gerekiyor." (192.168.1.1/24 ile 192.168.2.1/24 farklı ağlarını birbirine bağlar)
-
-
-
-### Ağ teriminin geniş ve bağlama göre değişkenlik gösterebilir (formlanabilir) cinste bir kavram oluşu üzerine
-
-Ağ kavramı çok geniş ve bağlama göre değişkenlik gösterebilir cinsten bir terim olduğundan şunlar belirtilmeli;
-
-<p align="center">
-  <img src="../Images/part2/router_subnet_and_switch_subnet_connection_difference-1.png" align="left" style="width: 40%; height: auto;">
-  <img src="../Images/part2/router_subnet_and_switch_subnet_connection_difference-2.png" style="width: 40%; height: auto;">
-</p>
-
-
-**Aynı ağ = aynı subnet** demek. Yani `192.168.1.0/24` subnet'indeki tüm cihazlar _"aynı ağda"._ Bu cihazlar birbirleriyle direkt konuşabiliyor — router'a gerek yok, switch yeterli.
-
-**Farklı ağ = farklı subnet** demek. `192.168.1.0/24` ile `192.168.2.0/24` farklı ağlar. Bu iki ağ arasında iletişim için router gerekiyor — switch tek başına yetmiyor.
-
-
-### VLAN nedir?
-
-<img src="../Images/part2/connectivity-between-vlans.gif" align="left" style="width: 40%; height: auto;">
-
-VLAN, VXLAN vb. terimlerin/çözümlerin/yöntemlerin/tekniklerin neye istinaden geliştirildiğini/ortaya çıkarıldığını anlayabilmek için önce bu tip çözümlemelerin ortaya çıkmadan önce ki meydanda olan mevcut halin/sorunların anlaşılması gerekli. Böylece bu çözümler öğrenilmek istenen konu kapsamında daha iyi kavranacaktır. Konuyu doğrudan ortaya çıkmış bir çözüm üzerinden anlamaya çabalamak kafa da çok fazla boşluğun kalmasına sebebiyet verebilir. Örneğin bir ağ mevcut (tüm uç cihazların bir switch'e bağlı olduğu bir topoloji) ve bu ağ segmentlendirilmek/bölümlendirilmek isteniyor. Çünkü aynı ağ içerisinde ki bazı uç cihazların bir diğer başka uç cihazlar ile iletişim kurmasına gerek olunmadığına karar verildi. Veya güvenlik için bölümlendirme yapılmak istendi. Veya tamamen keyfi şekilde bölümlendirilme yapılmak istendiğinden bu yapılmak isteniyor. Ağın bazı cihazları muhasebe bazı cihazları IT bölümünde/segment'inde olacak şekilde dilimlenmesi gerek. Ancak switch'in malum niteliği sebebiyle (iletim için tek bir broadcast domain olması) birbirlerinden izole bölümlendirilme yapılamıyor. Bunun için Layer 2 katmanında yani switch gibi cihazların anlayabileceği VLAN adlı bir çözüm devreye sokulabilir oluyor. Switch'e _"bu portlar Muhasebe VLAN'ı, şu portlar IT VLAN'ı, birbirlerini göremezler"_ diyebiliyorsun. VLAN switch'e Layer 3 farkındalığı kazandırmadan mantıksal segmentleme özelliği kazandırıyor. VLAN'ın getirdiği çözüm şu; normal de switch'e bağlı cihazlar tek bir broadcast domain üzerinden birbirleriyle haberleşiyor ancak yukarıda ki örnekte de belirtildiği üzere muhasebe ve IT departmanları birbirleriyle hiçbir zaman iletişim kurmayacaksa (veya genellikle) o halde bu broadcast domain'i her iletim esnasında meşgul etmenin bir yararı yok (çünkü örneğin muhasebe departmanında ARP request atıldığında gereksiz yere IT departmanında ki cihazada bu paket gidecek). Bunun yerine birden fazla broadcast domain'i olsun her biri kendi segment'i ile ilgilensin/yayın yapsın. VLAN, Layer 2 seviyesinde ağı mantıksal olarak bölerek ayrı broadcast domain’ler oluşturur. VLAN şu problemleri çözer:
-
--  Broadcast trafiğini azaltır:
-Tek ağ → herkes ARP alır
-VLAN → sadece kendi grubunu görür
-
--  Güvenlik sağlar
-Aynı switch üzerinde izolasyon
-Örn:
-Muhasebe VLAN 10
-IT VLAN 20
-
-- Fiziksel değil mantıksal ayrım
-Aynı kablo, aynı switch
-Ama sanki ayrı network gibi davranır
-
-VLAN, fiziksel olarak aynı switch üzerinde bulunan cihazları, Layer 2 seviyesinde ayrı ağlar (broadcast domain’ler) haline getirir. Bu ağlar genellikle farklı IP subnet’leri ile eşleştirilir ama bu zorunlu değildir.
-
-| VLAN    | Subnet             |
-| ------- | ------------------ |
-| VLAN 10 | 192.168.1.0/24     |
-| VLAN 20 | **192.168.1.0/24** |
-
-Yani Aynı IP bloğu Ama farklı VLAN →  iletişim yok Neden? Broadcast domain ayrı ve ARP birbirine ulaşamaz veya;
-
-| VLAN    | Subnet             |
-| ------- | ------------------ |
-| VLAN 10 | 192.168.1.0/24     |
-| VLAN 20 | **192.168.2.0/24** |
-
-Her VLAN = ayrı subnet. Aralarında iletişim için router gerekir. İki dizayn/tasarım da çalışır.
-
-### Layer 3 cihazları ile mantıksal olarak ağ segmenlendirilmesine rağmen neden Layer 2 katmanında bu sorun çözülmeye çalışılmıştır?
-Küçük topolojilerde VLAN kullanmadan izolasyon ve segmentleme yapılmak isteniyorsa Layer 3 katmanında çalışan cihazlar kullanılabilir. Bu bir tasarım mevzusudur. İstenirse küçük topolojilerde VLAN'da kullanılabilir ancak sorun büyük topolojilerde ortaya çıkıyor. Örneğin bir veri merkezinde binlerce sunucu var. Her sunucu arası iletişim için router kullansaydık ne olurdu? Router her paketi işlemek zorunda. Çok yavaş ve pahalı olurdu (geçmişte router'lar pahalıydı). Ağ trafiği sürekli Layer 3’e çıkıp geri inerdi. Bu ciddi bir performans kaybı. Switch’ler ise donanımsal (ASIC) çalışır çok daha hızlı frame iletir. Ayrıca ucuz. Büyük hacimli trafiği kolayca taşıyor. Bu yüzden aynı ağ içindeki iletişim için switch, farklı ağlar arası için router kullanılıyor. VLAN ile aynı fiziksel switch üzerinde, donanım hızında birden fazla mantıksal ağ oluşturabiliyorsun. amaç segmentasyonu Layer 3’e bırakmadan, Layer 2 seviyesinde daha hızlı ve esnek yapmak. VLAN’ın getirdiği kritik avantaj sayesinde switch kendi içinde: VLAN 10 → ayrı ağ, VLAN 20 → ayrı ağ segmentasyonu yapar. Trafik switch içinde kalır (wire speed). Router sadece gerektiğinde devreye girer. Bu da Router’a aşırı yük gereksiz **hop** yaptırmaz. Ölçeklenebilirlik problemi oluşturmaz. Ayrıca bu aslında _“ya VLAN ya router”_ mevzusu da değil. Bir ağ topolojisinde de zaten switch ve router birlikte de kullanılabilir: 
-
-Router / Layer 3 switch → VLAN’lar arası iletişim:
-
-<p align="center">
-  <img src="../Images/part2/vlan10-router-vlan20.png" style="width: 40%; height: auto;">
-</p>
-
-Buna **Inter-VLAN Routing** denir. 
-
-Eğer VLAN yoksa tüm cihazlar aynı broadcast domain'i kullanır bu da paket iletiminin gerçekleştirilmesi için aynı ağda ki tüm cihazları etkilediğinden ağı yorar. Yükü hafifletmek için ayrım yapılması gereklidir bu da ya fiziksel olarak ayırmak anlamına gelir (maliyetli, aşırı teçhizat) ya da tüm trafiği router’a zorlamak anlamına gelir (pahalı ve performans kaybı). Ancak VLAN ile farklı VLAN bölümleri oluşturulur bu da her bir VLAN bölümüne özgü brodcast domain anlamına gelir ve böylece bir iletim durumunda iletim, yalnızca kendisini ilgilendiren VLAN alanına sorgu/yayın/iletim yapar.
 
 ### VLAN egzersizi
 
@@ -305,6 +216,95 @@ Karşı VTEP bu paketi açıyor
         ↓
 Host-2'ye iletiyor
 ```
+
+### Router ve Switch cihazlarının birbirlerinden asıl farkları
+OSI modeli (ağ iletişimini katmanlara bölen model) bazında **Router Layer 3** katmanında çalışır ancak **Switch Layer 2** katmanında çalışır.
+
+<img src="../Images/part2/world_of_switch_and_router.png" align="right" style="width: 30%; height: auto;">
+
+Switch subnet'leri anlamaz. Switch sadece MAC adresi ile (layer 2'de) çalışır — _"bu MAC adresi bu porta bağlı"_ diyor ve paketi oraya gönderiyor. IP adresine, subnet'e bakmıyor. Kısaca Switch'e bağlı cihazları mantıksal olarak subnetlere bölsek de Switch tamamen farklı şekilde çalıştığından (MAC adresine göre) bu yapılandırmadan bir haber şekilde ona gelen paketlerin kime iletileceğini kendi ağında mevcut mu (yani bu cihazlar bu Switch'e bağlımı) diye bakarak paketleri doğru makinelere yönlendirebilir. 
+
+Teorik açıdan bakıldığında sanki switch'e bağlı tüm cihazlar birbirlerine `ping` atabilir iması oluşuyor olabilir. Ancak bu tamamen yanlış bir ima ve zan olacaktır. Çünkü Switch IP ile değil, MAC adresi ile çalışıyor olsada hostlar IP katmanında (Layer3 seviyesinde) karar verir; aynı subnet içinde olan cihazlar arasındaki paket transferi davranışı ile farklı subnette bulunan bir cihaza erişilmek istenildiğindeki davranışı bir değildir. Hostun davranış diyagramı aşağıdaki gibidir:
+
+- Aynı subnet: ARP atılır → MAC öğrenilir → switch iletir
+- Farklı subnet: ARP atılmaz bile, gateway aranır -> o da olmadığı için paket host'dan dışarı dahi çıkamaz.
+- Farklı subnet (default gateway'li): ARP atılmak istenir -> gateway aranır -> ARP atılır -> hosta iletilir -> host farklı subnette olmasından dolayı MAC adresini cihazın MAC adresi yerine gateway'in MAC adresini olarak yazar -> switch içerisinde paket ölür.
+
+Peki switch'ler neden sadece MAC adreslerine bakıp cihazlar arası iletişimi sağliyor diye bir soru sorulursa bu tamamen bu cihazin bu sekilde çalışılması istendiğinden dolayı bu şekilde tasarlanmış olduğu şeklinde cevap verilebilir :d
+
+<p align="center">
+  <img src="../Images/part2/router_subnet_and_switch_subnet_difference.png" style="width: 40%; height: auto;">
+</p>
+
+Switch → Aynı ağdaki cihazları birbirine bağlar. "Sen ve ben aynı ağdayız, direkt konuşabiliriz." (`192.168.1.0/24` ağında ki tüm cihazlar switch'i kullanarak birbirleriyle iletişim kurabilir)
+
+Router → Farklı ağlar arasında köprü kurar. "Sen farklı ağdasın, sana ulaşmak için yönlendirme gerekiyor." (192.168.1.1/24 ile 192.168.2.1/24 farklı ağlarını birbirine bağlar)
+
+
+
+### Ağ teriminin geniş ve bağlama göre değişkenlik gösterebilir (formlanabilir) cinste bir kavram oluşu üzerine
+
+Ağ kavramı çok geniş ve bağlama göre değişkenlik gösterebilir cinsten bir terim olduğundan şunlar belirtilmeli;
+
+<p align="center">
+  <img src="../Images/part2/router_subnet_and_switch_subnet_connection_difference-1.png" align="left" style="width: 40%; height: auto;">
+  <img src="../Images/part2/router_subnet_and_switch_subnet_connection_difference-2.png" style="width: 40%; height: auto;">
+</p>
+
+
+**Aynı ağ = aynı subnet** demek. Yani `192.168.1.0/24` subnet'indeki tüm cihazlar _"aynı ağda"._ Bu cihazlar birbirleriyle direkt konuşabiliyor — router'a gerek yok, switch yeterli.
+
+**Farklı ağ = farklı subnet** demek. `192.168.1.0/24` ile `192.168.2.0/24` farklı ağlar. Bu iki ağ arasında iletişim için router gerekiyor — switch tek başına yetmiyor.
+
+
+### VLAN nedir?
+
+<img src="../Images/part2/connectivity-between-vlans.gif" align="left" style="width: 40%; height: auto;">
+
+VLAN, VXLAN vb. terimlerin/çözümlerin/yöntemlerin/tekniklerin neye istinaden geliştirildiğini/ortaya çıkarıldığını anlayabilmek için önce bu tip çözümlemelerin ortaya çıkmadan önce ki meydanda olan mevcut halin/sorunların anlaşılması gerekli. Böylece bu çözümler öğrenilmek istenen konu kapsamında daha iyi kavranacaktır. Konuyu doğrudan ortaya çıkmış bir çözüm üzerinden anlamaya çabalamak kafa da çok fazla boşluğun kalmasına sebebiyet verebilir. Örneğin bir ağ mevcut (tüm uç cihazların bir switch'e bağlı olduğu bir topoloji) ve bu ağ segmentlendirilmek/bölümlendirilmek isteniyor. Çünkü aynı ağ içerisinde ki bazı uç cihazların bir diğer başka uç cihazlar ile iletişim kurmasına gerek olunmadığına karar verildi. Veya güvenlik için bölümlendirme yapılmak istendi. Veya tamamen keyfi şekilde bölümlendirilme yapılmak istendiğinden bu yapılmak isteniyor. Ağın bazı cihazları muhasebe bazı cihazları IT bölümünde/segment'inde olacak şekilde dilimlenmesi gerek. Ancak switch'in malum niteliği sebebiyle (iletim için tek bir broadcast domain olması) birbirlerinden izole bölümlendirilme yapılamıyor. Bunun için Layer 2 katmanında yani switch gibi cihazların anlayabileceği VLAN adlı bir çözüm devreye sokulabilir oluyor. Switch'e _"bu portlar Muhasebe VLAN'ı, şu portlar IT VLAN'ı, birbirlerini göremezler"_ diyebiliyorsun. VLAN switch'e Layer 3 farkındalığı kazandırmadan mantıksal segmentleme özelliği kazandırıyor. VLAN'ın getirdiği çözüm şu; normal de switch'e bağlı cihazlar tek bir broadcast domain üzerinden birbirleriyle haberleşiyor ancak yukarıda ki örnekte de belirtildiği üzere muhasebe ve IT departmanları birbirleriyle hiçbir zaman iletişim kurmayacaksa (veya genellikle) o halde bu broadcast domain'i her iletim esnasında meşgul etmenin bir yararı yok (çünkü örneğin muhasebe departmanında ARP request atıldığında gereksiz yere IT departmanında ki cihazada bu paket gidecek). Bunun yerine birden fazla broadcast domain'i olsun her biri kendi segment'i ile ilgilensin/yayın yapsın. VLAN, Layer 2 seviyesinde ağı mantıksal olarak bölerek ayrı broadcast domain’ler oluşturur. VLAN şu problemleri çözer:
+
+-  Broadcast trafiğini azaltır:
+Tek ağ → herkes ARP alır
+VLAN → sadece kendi grubunu görür
+
+-  Güvenlik sağlar
+Aynı switch üzerinde izolasyon
+Örn:
+Muhasebe VLAN 10
+IT VLAN 20
+
+- Fiziksel değil mantıksal ayrım
+Aynı kablo, aynı switch
+Ama sanki ayrı network gibi davranır
+
+VLAN, fiziksel olarak aynı switch üzerinde bulunan cihazları, Layer 2 seviyesinde ayrı ağlar (broadcast domain’ler) haline getirir. Bu ağlar genellikle farklı IP subnet’leri ile eşleştirilir ama bu zorunlu değildir.
+
+| VLAN    | Subnet             |
+| ------- | ------------------ |
+| VLAN 10 | 192.168.1.0/24     |
+| VLAN 20 | **192.168.1.0/24** |
+
+Yani Aynı IP bloğu Ama farklı VLAN →  iletişim yok Neden? Broadcast domain ayrı ve ARP birbirine ulaşamaz veya;
+
+| VLAN    | Subnet             |
+| ------- | ------------------ |
+| VLAN 10 | 192.168.1.0/24     |
+| VLAN 20 | **192.168.2.0/24** |
+
+Her VLAN = ayrı subnet. Aralarında iletişim için router gerekir. İki dizayn/tasarım da çalışır.
+
+### Layer 3 cihazları ile mantıksal olarak ağ segmenlendirilmesine rağmen neden Layer 2 katmanında bu sorun çözülmeye çalışılmıştır?
+Küçük topolojilerde VLAN kullanmadan izolasyon ve segmentleme yapılmak isteniyorsa Layer 3 katmanında çalışan cihazlar kullanılabilir. Bu bir tasarım mevzusudur. İstenirse küçük topolojilerde VLAN'da kullanılabilir ancak sorun büyük topolojilerde ortaya çıkıyor. Örneğin bir veri merkezinde binlerce sunucu var. Her sunucu arası iletişim için router kullansaydık ne olurdu? Router her paketi işlemek zorunda. Çok yavaş ve pahalı olurdu (geçmişte router'lar pahalıydı). Ağ trafiği sürekli Layer 3’e çıkıp geri inerdi. Bu ciddi bir performans kaybı. Switch’ler ise donanımsal (ASIC) çalışır çok daha hızlı frame iletir. Ayrıca ucuz. Büyük hacimli trafiği kolayca taşıyor. Bu yüzden aynı ağ içindeki iletişim için switch, farklı ağlar arası için router kullanılıyor. VLAN ile aynı fiziksel switch üzerinde, donanım hızında birden fazla mantıksal ağ oluşturabiliyorsun. amaç segmentasyonu Layer 3’e bırakmadan, Layer 2 seviyesinde daha hızlı ve esnek yapmak. VLAN’ın getirdiği kritik avantaj sayesinde switch kendi içinde: VLAN 10 → ayrı ağ, VLAN 20 → ayrı ağ segmentasyonu yapar. Trafik switch içinde kalır (wire speed). Router sadece gerektiğinde devreye girer. Bu da Router’a aşırı yük gereksiz **hop** yaptırmaz. Ölçeklenebilirlik problemi oluşturmaz. Ayrıca bu aslında _“ya VLAN ya router”_ mevzusu da değil. Bir ağ topolojisinde de zaten switch ve router birlikte de kullanılabilir: 
+
+Router / Layer 3 switch → VLAN’lar arası iletişim:
+
+<p align="center">
+  <img src="../Images/part2/vlan10-router-vlan20.png" style="width: 40%; height: auto;">
+</p>
+
+Buna **Inter-VLAN Routing** denir. 
+
+Eğer VLAN yoksa tüm cihazlar aynı broadcast domain'i kullanır bu da paket iletiminin gerçekleştirilmesi için aynı ağda ki tüm cihazları etkilediğinden ağı yorar. Yükü hafifletmek için ayrım yapılması gereklidir bu da ya fiziksel olarak ayırmak anlamına gelir (maliyetli, aşırı teçhizat) ya da tüm trafiği router’a zorlamak anlamına gelir (pahalı ve performans kaybı). Ancak VLAN ile farklı VLAN bölümleri oluşturulur bu da her bir VLAN bölümüne özgü brodcast domain anlamına gelir ve böylece bir iletim durumunda iletim, yalnızca kendisini ilgilendiren VLAN alanına sorgu/yayın/iletim yapar.
 
 ### Uç cihazlar Layer 3 katmanında çalışan cihazlar ise nasıl Layer 2 paketi gönderebiliyorlar?
 Bir web sitesine istek atıldığında bilgisayar ne gönderiyor? Sadece IP paketi mi? Hayır. Her cihaz bilgisayar, telefon, sunucu ağa bir şey gönderirken her zaman hem Layer 2 hem Layer 3 kullanıyor. Katmanlar iç içe:
