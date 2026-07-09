@@ -20,6 +20,7 @@
     - [Docker konteynerlar çalıştıktan sonra içlerinde barındırılan `/gns3` klasörü ve script'leri](#docker-konteynerlar-çalıştıktan-sonra-içlerinde-barındırılan-gns3-klasörü-ve-scriptleri)
   - [Temel Ağ Kavramları](#temel-ağ-kavramları)
     - [`ip a` komutunun çıktısında gözüken ağ arayüzlerinin anlamları](#ip-a-komutunun-çıktısında-gözüken-ağ-arayüzlerinin-anlamları)
+    - [Data, Segment, Frame ve Bit nedir ve ne içerir?](data-segment-frame-ve-bit-nedir-ve-ne-içerir)
     - [Router yazılımı ne demek? Router yazılımı bir cihaza indirildiğinde ne oluyor?](#router-yazılımı-ne-demek-router-yazılımı-bir-cihaza-indirildiğinde-ne-oluyor)
     - [FRR yazilim çatısı altında ki diğer yazılımların işlevleri](#frr-yazilim-çatısı-altında-ki-diğer-yazılımların-işlevleri)
     - [Gateway Nedir?](#gateway-nedir)
@@ -267,6 +268,13 @@ Script'ler için `/gns3` klasöründe ki `bin` klasörünün altında ki `busybo
 ### Temel Ağ Kavramları
 #### `ip a` komutunun çıktısında gözüken ağ arayüzlerinin anlamları
 `ip a` (veya `ip addr`) komutu mevcut cihazın **ağ arayüzlerini** gösteriyor. Şöyle ki: Fiziksel bir bilgisayarda ağ kartı var — ethernet portu, Wi-Fi kartı gibi. Bunların her biri bir ağ arayüzü. `eth0`, `eth1` bunların sanal karşılıkları/temsilleri — her biri bir ethernet portu. Bağladığın her kablo bir `eth` arayüzüne denk geliyor. `lo` ise **loopback** — fiziksel bir port değil, cihazın kendisiyle konuşması için özel bir sanal arayüz. `127.0.0.1` adresi hep buraya ait. `enp` öneki ile başlayan isimler ise daha yeni Linux sistemlerde kullanılan isimlendirme standardı — `eth0` yerine donanımın fiziksel konumuna göre isim veriliyor.
+
+### Data, Segment, Frame ve Bit nedir ve ne içerir?
+**Data (Layer 5 - 7)**: TCP/IP'deki uygulama katmanı, OSI'deki layer 5 - 6 ve 7'yi kapsar. Kullanıcının doğrudan etkileşime girdiği ham içeriktir. İçeriği örnek olarak bir web sayfasının HTML kodları, bir e-posta metni, bir görsel veya MP3 dosyası olabilir.
+**Segments (Layer 4)**: Ham ve tüm verinin internette daha rahat taşınabilmesi için daha küçük parçalara bölünmüş halidir (üst katmandan gelen verinin). İçeriği Port numarası, Sequence Numbers (TCP'de paketlerin karşı tarafta doğru sırayla birleştirilmesini sağlamak için), Checksum (Verinin taşıma esnasında bozulup bozulmadığını denetlemek için.) bulunur.
+**Packets (Layer 3)**: Segmentlerin üzerine IP'lerin eklendiği katmandır. Verinin hangi ip'den hangi IP'ye gideceği ve TTL bilgilerini içerir.
+**Frames (Layer 2)**: MAC adreslerinin yazıldığı katmandır.
+**Bits (Layer1)**: Fiziksel ortamda bilginin karşı tarafa iletilebilmesi için 0 ve 1'lere ayrıştığı halidir.
 
 #### Router yazılımı ne demek? Router yazılımı bir cihaza indirildiğinde ne oluyor?
 Fiziksel olarak bir router ile normal bir bilgisayar arasında aslında çok fark yok — ikisi de bir işlemci, RAM, ağ kartlarından oluşuyor. Fark şurada: 
