@@ -1,3 +1,4 @@
+##################### Group 1: Dynamic BGP configuration for EVPN overlay
 # To create overlay configurations, we first need to set up the underlying infrastructure; for our first subnet:
 ip addr add 10.0.0.1/30 dev eth0
 
@@ -40,13 +41,13 @@ vtysh -c "
  neighbor VTEP-GROUP remote-as 1
  # It means communicate with neighbours in this group via loopback.
  neighbor VTEP-GROUP update-source lo
- # This means automatically accepting BGP neighbour requests from the 1.1.1.0/24 block and adding them to the `VTEP-GROUP` group.
+ # This means automatically accepting BGP neighbour requests from the 1.1.1.0/24 block and adding them to the VTEP-GROUP group.
  bgp listen range 1.1.1.0/24 peer-group VTEP-GROUP
  # In FRR, lines beginning with `!` are treated as comments and are not execute. It acts as a separator.
  !
  # We’re moving on to another internal configuration shell to instruct BGP to carry not only IPv4 routes but also MAC information. 
  address-family l2vpn evpn
-  # We say, Share the EVPN information with `VTEP-GROUP` members as well. 
+  # We say, Share the EVPN information with VTEP-GROUP members as well. 
   neighbor VTEP-GROUP activate
   # This means VTEP-GROUP members are the clients in my EVPN address family.
   neighbor VTEP-GROUP route-reflector-client
@@ -56,3 +57,48 @@ vtysh -c "
  exit
  write
 "
+
+################# Static BGP configuration for EVPN overlay
+# ip addr add 10.0.0.1/30 dev eth0
+# ip addr add 10.0.0.5/30 dev eth1
+# ip addr add 10.0.0.9/30 dev eth2
+# ip addr add 1.1.1.1/32 dev lo
+# vtysh -c "
+# configure terminal
+# router ospf
+# network 1.1.1.1/32 area 0
+# network 10.0.0.0/30 area 0
+# network 10.0.0.4/30 area 0
+# network 10.0.0.8/30 area 0
+# exit
+# exit
+# write
+# "
+#vtysh -c "
+# configure terminal
+# router bgp 1
+# neighbor 1.1.1.2 remote-as 1
+# neighbor 1.1.1.3 remote-as 1
+# neighbor 1.1.1.4 remote-as 1
+# neighbor 1.1.1.5 remote-as 1
+# neighbor 1.1.1.2 update-source lo
+# neighbor 1.1.1.3 update-source lo
+# neighbor 1.1.1.4 update-source lo
+# neighbor 1.1.1.5 update-source lo
+# !
+# address-family l2vpn evpn
+#  neighbor 1.1.1.2 activate
+#  neighbor 1.1.1.3 activate
+#  neighbor 1.1.1.4 activate
+#  neighbor 1.1.1.5 activate
+#  neighbor 1.1.1.2 route-reflector-client
+#  neighbor 1.1.1.3 route-reflector-client
+#  neighbor 1.1.1.4 route-reflector-client
+#  neighbor 1.1.1.5 route-reflector-client
+#  exit
+# exit
+# exit
+# write
+#"
+
+
