@@ -28,6 +28,10 @@
 - [Bir host'un MAC adresinin BGP EVPN tablosuna kaydedilebilmesinin bir yolu da `ping` atmakdır. Kısaca bu yolla ağda aktif olduğunu göstermek. Ancak bu ARP trafiği oluşturmak demek oluyor. Biz BGP EVPN'i zaten tam da bu amaçla ARP flooding'ten kurtulmak icin kullanmıyor muyduk? Yani ARP atmadan arkaplan da (kontrol düzleminde) cihazlarin birbirlerine paket göndererek (BGP paketleri) kimin ağ da kimin ağ da olmadığını sürekli kontrol eden bir mekanizma ile MAC adresleri elde edilmiyor muydu? O halde neden yine host'dan ping atilarak ARP trafiği oluşturuluyor?](#bir-hostun-mac-adresinin-bgp-evpn-tablosuna-kaydedilebilmesinin-bir-yolu-da-ping-atmakdır-kısaca-bu-yolla-ağda-aktif-olduğunu-göstermek-ancak-bu-arp-trafiği-oluşturmak-demek-oluyor-biz-bgp-evpni-zaten-tam-da-bu-amaçla-arp-floodingten-kurtulmak-icin-kullanmıyor-muyduk-yani-arp-atmadan-arkaplan-da-kontrol-düzleminde-cihazlarin-birbirlerine-paket-göndererek-bgp-paketleri-kimin-ağ-da-kimin-ağ-da-olmadığını-sürekli-kontrol-eden-bir-mekanizma-ile-mac-adresleri-elde-edilmiyor-muydu-o-halde-neden-yine-hostdan-ping-atilarak-arp-trafiği-oluşturuluyor)
 - [Eğer ki MAC adresleri, host cihaz pasif duruma geçtiğinde BGP EVPN tablosundan siliniyorsa bu host'un MAC adresi tekrardan nasıl öğreniliyor? Çünkü VTEP'lere host'ların MAC adresleri RR cihazi aracılığıyla yansıtılıyor ama RR cihazı da bu host'un MAC adresini bilmiyorsa ne oluyor? Yani tüm ağ tarafından artık bu host'un MAC adresi bilinmiyorsa ne oluyor tekrardan bilebilmek için?](#eğer-ki-mac-adresleri-host-cihaz-pasif-duruma-geçtiğinde-bgp-evpn-tablosundan-siliniyorsa-bu-hostun-mac-adresi-tekrardan-nasıl-öğreniliyor-çünkü-vteplere-hostların-mac-adresleri-rr-cihazi-aracılığıyla-yansıtılıyor-ama-rr-cihazı-da-bu-hostun-mac-adresini-bilmiyorsa-ne-oluyor-yani-tüm-ağ-tarafından-artık-bu-hostun-mac-adresi-bilinmiyorsa-ne-oluyor-tekrardan-bilebilmek-için)
 - [OSPF, BGP vb. tüm bu yapılandırmalar için gerçek senaryolarda gerçekten tek tek her cihaza manuel konfigürasyonlar mı yapılıyor?](#ospf-bgp-vb-tüm-bu-yapılandırmalar-için-gerçek-senaryolarda-gerçekten-tek-tek-her-cihaza-manuel-konfigürasyonlar-mı-yapılıyor)
+- [OSPF ve BGP paket tipleri/cinsleri/türleri](#ospf-ve-bgp-paket-tiplericinsleritürleri)
+  - [OSPF paket tipleri/cinsleri/türleri](#ospf-paket-tiplericinsleritürleri)
+  - [BGP paket tipleri/cinsleri/türleri](#bgp-paket-tiplericinsleritürleri)
+    - [BGP'nin TCP paketleri ve bunların tipleri/cinsleri/türleri](#bgpnin-tcp-paketleri-ve-bunların-tiplericinsleritürleri)
 - [BGP EVPN VXLAN ile host üzerinden yola çıkan bir paketin yolculuğu ve bu yolculukta maruz kaldığı tüm durumlar ve işleyişler](#bgp-evpn-vxlan-ile-host-üzerinden-yola-çıkan-bir-paketin-yolculuğu-ve-bu-yolculukta-maruz-kaldığı-tüm-durumlar-ve-işleyişler)
   - [Bir paketin ilk kez gönderileceği zaman ki yolculuğu](#bir-paketin-ilk-kez-gönderileceği-zaman-ki-yolculuğu)
   - [Bir paketin ikinci kez gönderileceği zaman ki yolculuğu](#bir-paketin-ikinci-kez-gönderileceği-zaman-ki-yolculuğu)
@@ -405,7 +409,7 @@ exit
 write
 ```
 
-- `advertise-all-vni` ayarı şunu söylüyor: _"Bu cihazda tanımlı tüm VXLAN ID'lerini BGP EVPN üzerinden duyur."_ Yani VTEP _"bende VNI 10 var"_ diye RR'ye bildiriyor. RR bunu diğer VTEP'lere yansıtacak.
+- `advertise-all-vni` ayarı şunu söylüyor: _"Bu cihazda tanımlı tüm VXLAN ID'lerini BGP EVPN üzerinden duyur."_ Yani VTEP _"bende VNI 10 var"_ diye RR'ye bildiriyor. Peki Leaf VTEP cihazı neden sahip olduğu VNI'leri RR cihazına bildirmeli? Bunun sebebi, Leaf VTEP'lerin birbirini bulması ve VNI bazlı tünelleri kurabilmesi içindir. EVPN'de sadece MAC adresleri (Type-2) taşınmaz. Ondan önce taşınması gereken çok daha kritik bir paket vardır: Type-3 IMET (Inclusive Multicast Ethernet Tag) Rotası. VTEP kendi üzerindeki tüm VNI'ler için RR'a hemen birer Type-3 paketi fırlatır. RR bu paketi alır ve tüm VTEP'lere yansıtır. Ardından yansıtılmış paketleri alan VTEP'ler eğer bu pakette belirtilen VNI değeriyle aynı VNI değerine sahip ise bu yeni VTEP ile tünel kurarlar. Değilse VTEP bu paketi çöpe atar. Tünel kurmaz. Yani VTEP'lerin kendi VNI'lerini RR'a bildirmesinin ilk ve en büyük sebebi; Aynı VNI'ye sahip olan VTEP'lerin dinamik olarak birbirini keşfetmesi ve aralarında otomatik tünel (Data Plane) kurmasıdır. Bu bilgi gitmezse, VTEP'ler birbirleriyle tünel kuramazlar. Özetle eğer Leaf VTEP'i kendi üzerindeki VNI'leri RR'a (ve dolayısıyla diğer VTEP'lere) bildirmezse diğer VTEP'ler o cihazda hangi VNI'lerin aktif olduğunu asla öğrenemez. Öğrenemedikleri için o cihazla aralarında VXLAN tüneli inşa edemezler. Tünel olmadığı için, overlay'de ki cihazlar birbirlerine paket gönderemezler.
 
 #### Spesifik olarak _"belirli bir VNI değerini duyur"_ diyemez miyiz? Örneğin ağ yapım da iki VNI'im var `10` ve `20` olarak _"sadece 10'u duyur"_ diyemiyor muyum?
 
@@ -1093,6 +1097,67 @@ Büyük ağ  → Terraform + Ansible + NetBox
 Dev ağ    → özel platformlar (Google, Amazon kendi araçlarını yazıyor)
 ```
 Bu araçlar ayrı bir uzmanlık alanı — Network Automation veya NetDevOps olarak adlandırılıyor.
+
+### OSPF ve BGP paket tipleri/cinsleri/türleri
+GNS3'de BGP EVPN + VXLAN ağ yapısı kurulurken şayet RR ve VTEP'ler arası bağlantıya Wireshark açılırsa, kurulum esnasında kullanılan her OSPF ve BGP konfigürasyon komutları sonrası ağ da oluşan değişikleri Wireshark ile izlemek mümkündür. Bu sayede FRR ile çalıştırdığımız bu servislerin (ospfd, bgpd vb.) arka plan da neler yaptıkları gözlemlenebilir. Burada bu paketlerin ne oldukları, neden atıldıkları ve ne işe yaradıkları açıklanacaktır.
+
+#### OSPF paket tipleri/cinsleri/türleri
+1. **Hello paketi**
+  - Nedir? OSPF'in "Selam, ben buradayım!" paketidir.
+  - Neden atılır? Komşuları bulmak, onlarla bu şekilde ilişki kurmak ve bu ilişkinin hâlâ canlı olup olmadığını kontrol etmek için.
+  - Ne işe yarar? Belirli aralıklarla çevreye yayınlanır. Eğer bir router'dan belirli bir süre Hello paketi gelmezse, o router'ın "öldüğü" varsayılır ve ağ haritasından çıkarılır.
+2. **DB Description paketi**
+  -  Nedir? Ağ haritasının "özet geçilmiş" kataloğudur.
+  -  Neden atılır? İki router ilk kez komşu olduğunda, ellerindeki rota bilgilerini karşılaştırmak için atılır.
+  -  Ne işe yarar? Router'lar tüm detaylı haritayı göndermek yerine, önce bu özet listeyi paylaşırlar. Böylece karşı taraf "Bende hangi yollar eksik, hangileri güncel?_ bunu anlar.
+3. **LS Request paketi**
+  -  Nedir? _Bana şu bilginin detayını gönder_ talebidir.
+  -  Neden atılır? DB Description paketini inceleyen router, kendisinde eksik veya eski olan bir rota fark ettiğinde bunu istemek için atar.
+  -  Ne işe yarar? Hedef router'dan, o eksik olan ağın detaylı harita bilgisini (LSA) talep eder. _"Sende x rotası varmış, bana onun detayını verir misin?"_ demektir.
+4. **LS Update paketi**
+  -  Nedir? Detaylı rota bilgilerini taşıyan "cevap ve güncelleme" paketidir.
+  -  Neden atılır? Ya bir router LS Request paketi almıştır ve ona cevap veriyordur ya da ağda anlık bir değişiklik (bir kablonun kopması vb.) olmuştur ve bunu herkese duyurmak istiyordur.
+  -  Ne işe yarar? OSPF'in en ağır ve en önemli paketidir. İçinde LSA (Link State Advertisement) dediğimiz gerçek yönlendirme bilgileri bulunur. Ağ haritası bu paket sayesinde güncellenir.
+5. **LS Acknowledge paketi**
+  -  Nedir? _"Bilgiyi aldım, doğruladım"_ teyit paketidir.
+  -  Neden atılır? OSPF güvenilir (reliable) bir protokoldür. Gönderilen önemli bilgilerin (özellikle LS Update paketlerinin) karşı tarafa ulaştığından emin olmak için atılır.
+  -  Ne işe yarar? Güncelleme alan router, gönderen tarafa _"LS Update paketini başarıyla aldım, tamamdır"_ mesajı yollar. Eğer bu teyit gitmezse, gönderen router paketi tekrar yollar.
+
+#### BGP paket tipleri/cinsleri/türleri
+1. **OPEN paketi**
+  - Nedir? BGP'nin "Tanışma ve Anlaşma" paketidir.
+  - Neden Atılır? İki router arasında TCP bağlantısı kurulduktan hemen sonra, BGP komşuluğunu başlatmak için atılır.
+  - Ne işe yarar? İçerisinde BGP versiyonu, AS (Autonomous System) numarası, Hold Time (bekleme süresi) ve BGP Identifier (Router ID) gibi kimlik bilgileri yer alır. İki taraf bu parametrelerde anlaşırsa komşuluk kurulur.
+2. **KEEPALIVE**
+  - Nedir? _"Ben hâlâ buradayım ve yaşıyorum"_ mesajıdır.
+  - Neden Atılır? Komşuluğun canlı olup olmadığını kontrol etmek ve bağlantının kopmasını engellemek için belirli aralıklarla atılır.
+  - Ne işe yarar? BGP'de Hello paketi yoktur, onun yerine KEEPALIVE kullanılır. Eğer belirlenen süre boyunca bu paket gelmezse, karşı tarafın çöktüğü varsayılır ve o komşudan öğrenilen tüm rotalar silinir.
+3. **UPDATE**
+  - Nedir? BGP'nin en önemli "Rota Alışveriş" paketidir.
+  - Neden Atılır? Yeni bir ağ (rota) anons edilmek istendiğinde veya var olan bir rota ağdan kalktığında (geri çekildiğinde) atılır.
+  - Ne işe yarar? İçerisinde ağın adresi (Prefix) ve BGP'nin en karakteristik özelliği olan Path Attributes (Yol Nitelikleri - AS_PATH, Next_Hop, Local_Pref vb.) bulunur. BGP, en iyi yolu bu niteliklere bakarak seçer.
+4. **NOTIFICATION**
+  - Nedir? _"Hata var"_ paketidir.
+  - Neden Atılır? Bir hata tespit edildiğinde (Örn: Yanlış AS numarası, parametre uyuşmazlığı veya Hold Time süresinin dolması) atılır.
+  - Ne işe yarar? Hatayı karşı tarafa bildirir ve BGP komşuluğunu anında sonlandırır (kapatır). Wireshark'ta bu görülüyorsa ters giden bir şeyler var demektir.
+
+##### BGP'nin TCP paketleri ve bunların tipleri/cinsleri/türleri
+BGP, _"paketim yolda kayboldu mu, sırası karıştı mı?"_ diye dert etmez; çünkü bu güvenilirlik görevini tamamen TCP'ye devreder. Wireshark'ta görülen bu paketler, BGP mesajları taşınmadan önce ve sonra TCP'nin kurduğu altyapıdır.
+1. **SYN (Synchronize)**
+  - BGP ile ilişkisi: BGP komşuluğu başlamadan hemen önceki ilk adımdır.
+  - Ne işe yarar? Bir BGP router'ı, diğer router'ın 179 portuna _"Seninle güvenli bir TCP bağlantısı kurmak istiyorum"_ diyerek SYN paketini gönderir. BGP bağlantısı başlatma isteğidir.
+2. **ACK (Acknowledgment)**
+  - BGP ile ilişkisi: Alınan her verinin teyit mekanizmasıdır.
+  - Ne işe yarar? TCP üzerinden giden her OPEN, UPDATE veya KEEPALIVE paketinin ardından karşı taraf bir ACK paketi döner. _"Gönderdiğin BGP paketini eksiksiz aldım"_ demektir. BGP'nin OSPF gibi kendi içinde bir LSAck paketine ihtiyaç duymama sebebi işte bu TCP ACK paketidir.
+3. **FIN (Finish)**
+  - BGP ile ilişkisi: BGP komşuluğunun kurallara uygun şekilde kapatılmasıdır.
+  - Ne işe yarar? Örneğin GNS3'te BGP konfigürasyonu silindiğinde veya router'ı kapatılacağında, TCP düzeyinde _"Benim artık seninle işim bitti, bağlantıyı sonlandırıyorum"_ demek için FIN paketi gönderilir ve karşılıklı el sıkışılarak bağlantı kapatılır.
+4. **RST (Reset)**
+  - BGP ile ilişkisi: Bağlantının aniden ve zorla kesilmesidir.
+  - Ne işe yarar? Eğer bir router'a hiç beklemediği bir BGP paketi gelirse, port kapalıysa veya ciddi bir senkronizasyon hatası yaşanırsa, router karşı tarafa RST paketi gönderir. _"Bu bağlantıyı hemen, şu an koparıyorum!"_ anlamına gelen sert bir kapanıştır.
+
+Özetle VTEP'ler önce SYN ve ACK ile TCP el sıkışmasını (3-Way Handshake) yapar. Bağlantı kurulunca BGP devreye girer; OPEN ile tanışırlar, UPDATE ile rotaları paylaşırlar, KEEPALIVE ile ilişkiyi canlı tutarlar. Bir sorun olursa NOTIFICATION veya RST/FIN ile hat kapatılır.
+
 ### BGP EVPN VXLAN ile host üzerinden yola çıkan bir paketin yolculuğu ve bu yolculukta maruz kaldığı tüm durumlar ve işleyişler
 
 #### Bir paketin ilk kez gönderileceği zaman ki yolculuğu
