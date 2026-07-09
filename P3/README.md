@@ -37,10 +37,10 @@
 ## Part 3
 
 ### Statik komşuluk ilişkili BGP EVPN ile VXLAN topoloji egzersizi örneği
-
-```
-RR ── VTEP-1
-```
+        
+<p align="center">
+<img src="../Images/part3/part3-exercise-example.png" style="width: 29%; height: auto;">
+</p>
 
 1. **RR'ye 3 adapter, VTEP'e 2 adapter ver.**
 2. **IP planını uygula**

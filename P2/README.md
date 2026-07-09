@@ -27,6 +27,7 @@
   - [Topoloji görselinde ki Ethernet switch'in bulunmasının farklı bir perspektiften yorumu](#topoloji-görselinde-ki-ethernet-switchin-bulunmasının-farklı-bir-perspektiften-yorumu)
   - [Topoloji görselinde ki host'lara bir gateway ataması yapılmamasına rağmen paketlerin VTEP'lere nasıl ulaştığı üzerine](topoloji-görselinde-ki-hostlara-bir-gateway-ataması-yapılmamasına-rağmen-paketlerin-vteplere-nasıl-ulaştığı-üzerine)
   - [Uç cihazdan gönderilen bir paketin VXLAN yapılı ağda ki yolculuğu](#uç-cihazdan-gönderilen-bir-paketin-vxlan-yapılı-ağda-ki-yolculuğu)
+  - [Data, Segment, Frame ve Bit ne içerir?](#data-segment-frame-ve-bit-ne-içerir)
 
 ## Part 2
 
@@ -852,4 +853,14 @@ VXLAN'da **öğrenme** işlemi genellikle veri trafiği (data plane) üzerinden 
 Statik modun dezavantajı, **broadcast** trafiği her zaman tüm VTEP'lere gönderilir. Eğer 50 tane VTEP'iniz varsa, her bir ARP isteği için VTEP 1 tam 49 tane kopya paket üretmek zorunda kalır. Bu da CPU ve bant genişliği yükü demektir (Multicast modunun tercih edilme sebebi budur).
 
 
+### Data, Segment, Frame ve Bit ne içerir?
 
+<p align="center">
+  <img src="../Images/part2/osi-data-segment-packet-frame-bits.webp" style="width: 50%; height: auto;">
+</p>
+
+* **Data (Layer 5 - 7)**: TCP/IP'deki uygulama katmanı, OSI'deki layer 5 - 6 ve 7'yi kapsar. Kullanıcının doğrudan etkileşime girdiği ham içeriktir. İçeriği örnek olarak bir web sayfasının HTML kodları, bir e-posta metni, bir görsel veya MP3 dosyası olabilir.
+* **Segments (Layer 4)**: Ham ve tüm verinin internette daha rahat taşınabilmesi için daha küçük parçalara bölünmüş halidir (üst katmandan gelen verinin). İçeriği Port numarası, Sequence Numbers (TCP'de paketlerin karşı tarafta doğru sırayla birleştirilmesini sağlamak için), Checksum (Verinin taşıma esnasında bozulup bozulmadığını denetlemek için.) bulunur.
+* **Packets (Layer 3)**: Segmentlerin üzerine IP'lerin eklendiği katmandır. Verinin hangi ip'den hangi ip'ye gideceği ve TTL bilgilerini içerir.
+* **Frames (Layer 2)**: MAC adreslerinin yazıldığı katmandır (iki tarafında)
+* **Bits (Layer1)**: Fiziksel ortamda bilginin karşı tarafa iletilebilmesi için 0 ve 1'lere ayrıştığı halidir.
