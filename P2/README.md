@@ -21,6 +21,7 @@
   - [Sanal ağ arayüzlerinin paket iletimi üzerine](#sanal-ağ-arayüzlerinin-paket-iletimi-üzerine)
   - [Bir ağ arayüzüne (eth0, eth1 vb.) birden fazla IP adresi nasıl atanabiliyor? Ve durum böyle ise o halde bir cihazın birden fazla port'unun olmasının ne anlamı ve gereği var?](#bir-ağ-arayüzüne-eth0-eth1-vb-birden-fazla-ip-adresi-nasıl-atanabiliyor-ve-durum-böyle-ise-o-halde-bir-cihazın-birden-fazla-portunun-olmasının-ne-anlamı-ve-gereği-var)
   - [Bridge'i daha iyi anlamak için örnek bir topoloji çalışması](#bridgei-daha-iyi-anlamak-için-örnek-bir-topoloji-çalışması)
+  - [VXLAN'ı ve Bridge'i daha iyi anlamak için örnek bir topoloji çalışması](#vxlanı-ve-bridgei-daha-iyi-anlamak-için-örnek-bir-topoloji-çalışması)
   - [Bridge ağ arayüzüne bağlı port'ların incelenmesi](#bridge-ağ-arayüzüne-bağlı-portların-incelenmesi)
   - [VXLAN'ın statik modda (unicast) veya dinamik multicast modda ayarlanması sonucunda bu modların farklari ve üstlendikleri roller](#vxlanın-statik-modda-unicast-veya-dinamik-multicast-modda-ayarlanması-sonucunda-bu-modların-farklari-ve-üstlendikleri-roller)
   - [Proje dökümanında ki topoloji görselinde bulunan Ethernet switch cihazının neden konulduğu üzerine](#proje-dökümanında-ki-topoloji-görselinde-bulunan-ethernet-switch-cihazının-neden-konulduğu-üzerine)
@@ -473,7 +474,16 @@ Kurgumuz her iki cihazda da `eth0` ağ arayüzünde aynı subnet'e sahip cihazla
 ping 30.1.1.2
 ```
 
-Özet olarak sanki aynı switch'e bağlıymış gibi. Durumu daha da analiz etmek için Router-1/2 ile Ethernet switch arasında ki kabloya Wireshark aç ve ping at. Wireshark'da herhangi bir frame'in (şayet paketler hedefe iletiliyor ise) içeriği incelenecek olursa paketin bir kapsül paket olduğu saptanabilir. VNI degeri, VXLAN oldugu, kaynağın aslında `10.0.0.1`'den `10.0.0.2`'ye olduğu vb. gibi detaylar Wireshark aracıyla teyit edilebilir.
+Özet olarak sanki aynı switch'e bağlıymış gibi. Durumu daha da analiz etmek için Router-1/2 ile Ethernet switch arasında ki kabloya Wireshark aç ve ping at. Wireshark'da herhangi bir frame'in (şayet paketler hedefe iletiliyor ise) içeriği incelenecek olursa paketin bir kapsül paket olduğu saptanabilir. VNI degeri, VXLAN olduğu, kaynağın aslında `10.0.0.1`'den `10.0.0.2`'ye olduğu vb. gibi detaylar Wireshark aracıyla teyit edilebilir. Wireshark'da sadece ARP paketleri gözlemlenmek isteniyorsa;
+
+```
+arping -I <arp_paketlerinin_hangi_arayüzden_çıkış_yapacağı> <hedef_IP>
+```
+Örneğin bir Host-2'ye `arping` atılmak isteniyorsa;
+
+```
+arping -I eth0 30.1.1.2
+```
 
 ### Unicast, Multicast, Broadcast nedir?
 Şu biçim de benzerlik kurarak anlatmak gerekirse; bir sınıfta öğretmen olduğunu düşünün:
@@ -620,7 +630,50 @@ Statik modun Multicast moddan farkına gelirsek;
 | Statik | "şu spesifik IP'ye gönder" (unicasting)
 | Multicast  | "bu gruba gönder, kim dinliyorsa alsın" (multicasting)
 
+Yani Host'larımız arası paket alışveriş akışını düşünürsek;
 
+Senaryo: Host-1 ilk kez Host-2'ye ping atacak, MAC adresi bilinmiyor.
+
+1. Host-1 ARP Request gönderiyor
+```
+"Who has 30.1.1.2? Tell 30.1.1.1"
+```
+Bu broadcast paketi bridge üzerinden VTEP-1'e ulaşıyor.
+
+2. VTEP-1 ne yapıyor?
+Hedef MAC adresi bilinmiyor — BUM trafiği. VTEP-1 bu paketi VXLAN ile kapsülleyip `239.1.1.1` multicast adresine gönderiyor:
+```
+[Dış IP: 10.0.0.1 → 239.1.1.1 | UDP: 4789 | VNI: 10 | ARP Request]
+```
+Cihazlarda `ip neigh flush all` komutu ile tablolar temizlenip Wireshark'da **Display Filter** kısmına `ip.dst==239.1.1.1` yazılarak bu paket gözlemlenebilir.
+
+3. `239.1.1.1`'e gidince ne oluyor?
+Bu paket `239.1.1.1` grubuna üye olan tüm VTEP'lere (yani VTEP-2'ye) iletilir.
+VTEP-2'de `239.1.1.1` adresine üye olduğundan ve o adresi dinlediğinden paketi alır.  VTEP'ler `ip link add vxlan10 ... group 239.1.1.1` komutunu çalıştırınca Linux kernel otomatik olarak `IGMP` `JOIN` mesajı gönderiyor.
+Örneğin bu paketleri Wireshark'da gözlemleyebilmek için Multicast grubuna üye olan bir VTEP terminalinde;
+```
+ip link set vxlan10 down && ip link set vxlan10 up
+```
+komutunu kullanabilirsiniz. `vxlan10` interface'i `DOWN` olduğunda mevcut VTEP'in gruptan çıktığı `UNJOIN` paketi Wireshark'da gözükecek ve ardından da `UP` duruma tekrardan geçirdiğimizden `239.1.1.1` adresli multicast grubuna üye olduğunu `JOIN` paketi ile bildirecek. Wireshark'da bu membership paketlerinin hedef IP'si olarak `224.0.0.22` adresine gönderildiğini görebilirsiniz. Bu adres IGMPv3'te membership iletileri için özel olarak kullanılan bir IGMP multicast adresidir. Membership iletileri bu adres üzerinden bildirilir. Önce ki IGMP versiyonlarında membership iletileri için tanımlanan multicast grup adresi (bizim tanımlamamızda `239.1.1.1`) kullanılıyordu ancak yeni versiyonda bu sabit bir adres (`224.0.0.22`) üzerinden yapılacak biçim de değiştirilmiştir.
+
+Ayrıca VTEP terminalinde;
+```
+ip maddr show
+```
+komutu ile de mevcut VTEP'in bir multicast grubuna üye olup olmadığı veya hangi IP'li multicast grubuna üye olduğu da gözlemlenebilir.
+
+5. VTEP-2 paketi alıyor
+VTEP-2 VXLAN başlığını soyuyor, içindeki ARP Request'i görüyor. İki şey yapıyor:
+```
+a) VTEP-1'in IP'sini ve Host-1'in MAC adresini öğreniyor
+   "Host-1'in MAC adresi 10.0.0.1 arkasında"
+b) ARP paketini Host-2'ye iletiyor
+```
+5. Host-2 ARP Reply (_30.1.1.2 benim, MAC adresim şu_ şeklinde) gönderiyor
+Bu sefer unicast. VTEP-2 Host-1'in nerede olduğunu biliyor (adım 4'te öğrendi). Doğrudan VTEP-1'e unicast VXLAN paketi gönderiyor.
+
+6. Sonra ki paket gönderimlerinde sonra multicast yok
+Artık her iki VTEP de birbirini biliyor. Sonraki tüm paketler unicast gidiyor. Aksi bir durum olmadığı müddetçe (MAC tablolarının reset'lenmesi, tabloların ageing time'larının dolması vb.) Multicast grubuna bir daha başvurulmuyor.
 
 Underlay IP'leri her iki modda da kullanılıyor statik modda açıkça yazıyorsun, multicast modda ise fiziksel ağın multicast trafiği otomatik dağıtıyor. 
 Bir multicast grubunda en fazla kaç host veya üye barındırılabiliyor? Yani bu multicast grup IP'sini dinleyen en fazla kaç cihaz olabilir? Bir limit var mı?  Teknik olarak bir multicast grubunda binlerce cihaz olabilir. Belirgin bir limit yok. Ama pratikte çok fazla VTEP aynı grupta olursa multicast trafiği artar ve ağ yükü artar. Nasıl buluşuyorlar?
@@ -692,8 +745,56 @@ ip link set eth1 master br0
 
 Host-2'nin bir arayüz tarafı `eth0` Host-1'e diğer arayüz tarafı da `eth1` Host-3'e baktığından oluşturduğumuz `br0`'ın bir ucunu `eth0`'a diğer ucunu da `eth1` ile ilişkilendirirsek artık ping atabiliriz. Böylece Host-2 cihazımıza switch davranışı rolünü kazandırmış oluyoruz.
 
+### VXLAN'ı ve Bridge'i daha iyi anlamak için örnek bir topoloji çalışması
+
+Topoloji;
+```
+host-1 ── VTEP-1 ──┐
+                    ├── Switch ── VTEP-3 ── host-3
+host-2 ── VTEP-2 ──┘
+```
+
+IP planı Underlay;
+```
+VTEP-3 eth1: 10.0.0.3/24
+VTEP-3 eth1: 20.0.0.3/24
+VTEP-2 eth1: 20.0.0.2/24
+VTEP-1 eth1: 10.0.0.1/24
+```
+
+Statik modda VXLAN ayarı;
+```
+VTEP-3: vxlan10, vxlan20
+VTEP-2: vxlan20
+VTEP-1: vxlan10
+```
+
+Bridge ayarı;
+```
+VTEP-3: br0 <--> vxlan10, vxlan20, eth0
+VTEP-2: br0 <--> vxlan20, eth0
+VTEP-1: br0 <--> vxlan10, eth0
+```
+
+IP planı Overlay;
+```
+host-1 eth0: 30.0.0.1/24
+host-2 eth0: 30.0.0.2/24
+host-3 eth0: 30.0.0.3/24
+```
+
+Bu yapı da `host-1`'den `host-2`'ye ilk kez bir paket gönderilmek istendiğinde farklı `VTEP-1` ve `VTEP-2` farklı VNI'lere sahip olduğundan birbirlerine ulaşamayacağı düşünülebilir ancak `VTEP-3` her iki VNI'ye sahip olduğundan ve bridge yapılandırması her iki VNI'ye sahip paketi karşılayabilecek biçim de ayarlandığından bir köprü görevi görür;
+
+1. `host-1` ilk kez paket göndereceğinden ve `host-2`'nin MAC adresine sahip olmadığından ARP paketi oluşturur ve Flood'u başlatır.
+2. `VTEP-1` bu ARP paketini alır ve bunu `VNI 10` etiketiyle VXLAN kapsüllemesi yapar ve bunu `VTEP-3`'e iletir
+3. `VTEP-3`, `VTEP-1`'in `VNI 10` ile etiketlediği ve kapsüllediği ARP paketlerini alır (bridge'in de `VNI 10` paketlerini alabilecek şekilde yapılandırıldığından) ve bu paketi decapsulate (çözümleyip) edip bunu arkasında ki uç cihazına (host-3) iletir. Aynı zaman da amaç Flood olduğundan ve `VTEP-3` `VTEP-2`'ye de erişebildiğinden paketi `VNI 20` etiketiyle VXLAN kapsüllemesi yapıp `VTEP-2`'ye de iletir.
+4. `VTEP-2`'de aldığı paketleri çözümleyip arkasında ki uç cihaza (host-2) iletir.
+5. ARP paketleri `host-2`'ye ulaştıktan sonra `host-2` `ARP reply` oluşturarak paketin geldiği yolun tam tersi yönünde `host-1`'e cevap verir ve bu şekilde bağlantı kurulmuş olur.
+
+Bu yapı da `host-1`'in `host-2`'ye paket iletebilmesinin en önemli sebebi `VTEP-3` de ki bridge ve VXLAN konfigürasyonlarıdır.
+
 ### Bridge ağ arayüzüne bağlı port'ların incelenmesi
-Bridge'in sanal bir switch olduğuna dair benzetme yapılmıştı. Aynı şekilde bu sanal switch'in port'lari `brctl showmacs <bridge_name>` şeklinde listelenip incelenebilir. Burada onemli bir kac noktalar mevcut;
+Bridge'in sanal bir switch olduğuna dair benzetme yapılmıştı. `bridge link show` komutu ile `br0` portuna bağlı olan arayüzler/portlar görülebilir ve bu sanal switch'in port'larını `brctl showmacs <bridge_name>` şeklinde listelenip incelenebilir. Burada onemli bir kac noktalar mevcut;
 
 İlki, uzun bir müddet paket iletimi (yani ping atılmazsa) cihazların MAC adresleri listede gözükmeyecektir. Çünkü bridge MAC adreslerini dinamik olarak öğreniyor. Tıpkı gerçek bir switch gibi. Bir cihaz paket gönderince bridge _"bu MAC adresi bu porttan geliyor"_ diye tabloya yazıyor. Paket gelmezse bilmiyor.
 
