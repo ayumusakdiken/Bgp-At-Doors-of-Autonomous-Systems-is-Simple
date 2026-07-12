@@ -43,7 +43,7 @@ vtysh -c "
  neighbor VTEP-GROUP update-source lo
  # This means automatically accepting BGP neighbour requests from the 1.1.1.0/24 block and adding them to the VTEP-GROUP group.
  bgp listen range 1.1.1.0/24 peer-group VTEP-GROUP
- # In FRR, lines beginning with `!` are treated as comments and are not execute. It acts as a separator.
+ # In FRR, lines beginning with ! are treated as comments and are not execute. It acts as a separator.
  !
  # We’re moving on to another internal configuration shell to instruct BGP to carry not only IPv4 routes but also MAC information. 
  address-family l2vpn evpn

@@ -32,11 +32,11 @@ vtysh -c "
  neighbor 1.1.1.1 update-source lo
  # In FRR, lines beginning with ! are treated as comments and are not execute. It acts as a separator.
  !
- # We’re moving on to another internal configuration shell to instruct BGP to carry not only IPv4 routes but also MAC information;
+ # We re moving on to another internal configuration shell to instruct BGP to carry not only IPv4 routes but also MAC information;
  address-family l2vpn evpn
-  # we're saying, Share EVPN information with RR.
+  # we re saying, Share EVPN information with RR.
   neighbor 1.1.1.1 activate
-  # we're saying, Advertise all VXLAN IDs defined on this device via BGP EVPN.
+  # we re saying, Advertise all VXLAN IDs defined on this device via BGP EVPN.
   advertise-all-vni
   # Exit from internal address-family configuration env
   exit

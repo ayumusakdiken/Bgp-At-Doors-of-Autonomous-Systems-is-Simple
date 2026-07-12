@@ -28,15 +28,15 @@ vtysh -c "
  router bgp 1
  # The IP address of the neighbor to be connected to and the AS number it belongs to are specified;
  neighbor 1.1.1.1 remote-as 1
- # This means Use my `lo` interface as the source IP when sending BGP messages to this neighbor (1.1.1.1).
+ # This means Use my lo interface as the source IP when sending BGP messages to this neighbor (1.1.1.1).
  neighbor 1.1.1.1 update-source lo
- # In FRR, lines beginning with `!` are treated as comments and are not execute. It acts as a separator.
+ # In FRR, lines beginning with ! are treated as comments and are not execute. It acts as a separator.
  !
- # We’re moving on to another internal configuration shell to instruct BGP to carry not only IPv4 routes but also MAC information;
+ # We re moving on to another internal configuration shell to instruct BGP to carry not only IPv4 routes but also MAC information;
  address-family l2vpn evpn
-  # we're saying, Share EVPN information with RR.
+  # we re saying, Share EVPN information with RR.
   neighbor 1.1.1.1 activate
-  # we're saying, Advertise all VXLAN IDs defined on this device via BGP EVPN.
+  # we re saying, Advertise all VXLAN IDs defined on this device via BGP EVPN.
   advertise-all-vni
   # Exit from internal address-family configuration env
   exit
