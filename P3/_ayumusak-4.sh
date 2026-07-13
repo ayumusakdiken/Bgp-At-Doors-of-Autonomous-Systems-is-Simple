@@ -45,8 +45,8 @@ vtysh -c "
  write
  "
 
-# Create a virtual network interface named `vxlan10`, of type `vxlan`, with an ID of `10`, a destination port of 4789, and the `nolearning` parameter to prevent it from learning MAC addresses on the data plane;
-ip link add vxlan10 type vxlan id 10 local 1.1.1.4 nolearning dstport 4789
+# Create a virtual network interface named `vxlan10`, of type `vxlan`, with an ID of `10`, a destination port of 4789;
+ip link add vxlan10 type vxlan id 10 local 1.1.1.4 dstport 4789
 # Up to `vxlan10` virtual interface from `DOWN` state
 ip link set vxlan10 up
 # Create a bridge interface named `br0`, of type `bridge`
