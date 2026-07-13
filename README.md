@@ -83,3 +83,6 @@ Bu sayede GNS3 projesi olmasa bile birisi bu dosyalara bakarak topolojiyi yenide
 - [Ömer Bektaş OSI video'su](https://youtu.be/LKUNExyhPyo?si=-2NBiZCat_MUOKfy)
 - [MDUZGUNN "40-) BGP Dinamik Routing Protokolü" video'su](https://youtu.be/N9agdL72RaE?si=YKu1Lew_-Bir9i9d)
 - [IT MasterMind "VLAN Nedir ve Neden Kullanılır" video'su](https://youtu.be/yC5BMBDeQWw?si=8NjPJWZwtjIHlyuJ)
+- [BGP EVPN kurulum video - 1](https://www.youtube.com/watch?v=_DO_SEm73pQ)
+- [ARP Suppression Hakkında Video](https://www.youtube.com/watch?v=Ft62FVh_N7Q)
+- [EVPN ARP Suppression Hakkında](https://github.com/FRRouting/frr/issues/16015)
